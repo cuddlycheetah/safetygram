@@ -28,4 +28,4 @@ class Settings {
         return this.settings[key]
     }
 }
-module.exports = new Settings('../settings.json')
+module.exports = new Settings('/etc/safetygram/settings.json')

@@ -2,6 +2,10 @@ FROM node:10-alpine
 # Python installieren
 RUN apk update && apk add python g++ make && rm -rf /var/cache/apk/*
 # Create app directory
+RUN mkdir -p /etc/safetygram/
+RUN mkdir -p /etc/safetygram/db/
+RUN chmod 777 -R /etc/safetygram/
+
 RUN mkdir -p /usr/src/app
 RUN mkdir -p /usr/src/app/api
 RUN mkdir -p /usr/src/app/app_html

@@ -10,7 +10,7 @@ const sequelize = new Sequelize({
     database: 'safetygram',
     ...Settings.get('dbSettings', {
         dialect: 'sqlite',
-        storage: '../safetygram.db',
+        storage: '/etc/safetygram/safetygram.db',
     }),
     define: {
         charset: 'utf8mb4',
