@@ -1,7 +1,4 @@
 FROM node:10-alpine
-# will be in /usr/local/lib/libtdjson.so
-# FROM akhmetov/tdlib
-
 # Python installieren
 RUN apk update && apk add python g++ make && rm -rf /var/cache/apk/*
 # Create app directory
@@ -14,7 +11,6 @@ WORKDIR /usr/src/app
 COPY package*.json /usr/src/app/
 RUN npm install \
         && npm install -g pm2
-
 # Bundle app source
 COPY ./*.js /usr/src/app/
 

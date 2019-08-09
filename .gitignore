@@ -1,4 +1,5 @@
 db/
 node_modules/
 settings.json
+libtdjson.*
 safetygram.db
