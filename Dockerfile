@@ -1,12 +1,13 @@
 FROM node:10-alpine
 # will be in /usr/local/lib/libtdjson.so
-FROM akhmetov/tdlib
+# FROM akhmetov/tdlib
 
 # Python installieren
 RUN apk update && apk add python g++ make && rm -rf /var/cache/apk/*
 # Create app directory
 RUN mkdir -p /usr/src/app
 RUN mkdir -p /usr/src/app/api
+RUN mkdir -p /usr/src/app/app_html
 WORKDIR /usr/src/app
 
 # Install app dependencies
@@ -17,9 +18,10 @@ RUN npm install \
 # Bundle app source
 COPY ./*.js /usr/src/app/
 
-COPY /usr/local/lib/libtdjson.so /usr/src/app/
-# COPY ./libtdjson.so.1.4.0 /usr/src/app/
+# COPY /usr/local/lib/libtdjson.so /usr/src/app/
+COPY ./libtdjson.so /usr/src/app/
 COPY ./api/*.js /usr/src/app/api/
+COPY ./app_html /usr/src/app/app_html
 
 EXPOSE 46590
 CMD pm2 start index.js --no-daemon
