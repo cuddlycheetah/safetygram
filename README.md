@@ -39,7 +39,7 @@ There is already an packed docker image for simple-install
 ```
 # for installing
 docker pull cuddlycheetah/safetygram
-docker run cuddlycheetah/safetygram
+docker run -v /etc/safetygram/:/etc/safetygram/ -p 46590:46590 -d cuddlycheetah/safetygram
 
 # for debugging
 docker exec -it <name> pm2 log index
