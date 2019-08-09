@@ -1,9 +1,17 @@
 # Safetygram
-Logging all Messages for Telegram Private Chats.
+Logging all Messages for Telegram Private Chats. Useful when People delete messages, 
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your machine. See deployment for notes on how to deploy the project on a live system.
+
+### Settings
+
+There is a settings.json inside the Docker Container (/usr/src/app/settings.json)
+You can change the port of this service by changing "port" to whatever port you want.
+
+## Support
+Telegram Channel & Support Group is available [here](https://t.me/SafetygramApp)
 
 ### Prerequisites
 
@@ -38,10 +46,6 @@ docker exec -it <name> pm2 log index
 ## Deployment
 
 Add nginx https proxy and block port 46590 for incoming packages
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 
