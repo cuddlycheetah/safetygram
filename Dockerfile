@@ -1,5 +1,7 @@
-FROM node:10
+FROM node:10-alpine
 
+# Python installieren
+RUN apk update && apk add yarn python g++ make && rm -rf /var/cache/apk/*
 # Create app directory
 RUN mkdir -p /usr/src/app
 RUN mkdir -p /usr/src/app/api
