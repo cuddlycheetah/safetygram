@@ -1,0 +1,6 @@
+node_modules
+npm-debug.log
+../safetygram.db
+../settings.json
+cache
+db

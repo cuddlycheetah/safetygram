@@ -20,6 +20,7 @@ exports.setup = (router) => {
     router.get ('/token/check', exports.middleware, exports.token_check)
 
     router.post('/interface/changepassword', exports.middleware, exports.set_interface_password)
+    router.post('/server/restart', exports.middleware, exports.restart_server)
 
     router.post('/setup/phonenumber', exports.middleware, exports.set_phonenumber)
     router.post('/setup/password', exports.middleware, exports.set_password)
@@ -149,5 +150,9 @@ exports.status = async (req, res) => {
         tgAuth: authState._,
         setup: Settings.get('password', '').length == 0,
         auth: Settings.get('auth', false),
+        updateAvailable: true,
     })
+}
+exports.restart_server = async (req, res) => {
+    process.exit(2)
 }

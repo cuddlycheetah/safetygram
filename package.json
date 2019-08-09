@@ -10,7 +10,7 @@
     "prod": "tsc && node ./build/index.js"
   },
   "author": "cuddlycheetah (Konrad Schumann)",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "airgram": "^1.2.1",
     "bcrypt": "^3.0.6",
@@ -29,5 +29,19 @@
     "sqlite3": "^4.0.9",
     "sqlite3orm": "^2.4.10",
     "uuid": "^3.3.2"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuddlycheetah/safetygram.git"
+  },
+  "keywords": [
+    "safetygram",
+    "telegram",
+    "persistent"
+  ],
+  "bugs": {
+    "url": "https://github.com/cuddlycheetah/safetygram/issues"
+  },
+  "homepage": "https://github.com/cuddlycheetah/safetygram#readme"
 }

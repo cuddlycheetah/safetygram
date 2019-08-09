@@ -3,6 +3,7 @@ const { sequelize,
     User, UserInfo, UserNameset,
     Message, MessageEdit } =  require('../database')
 const airgram = require('../airgram')
+const Settings = require('../Settings')
 
 
 const fs = require('fs')

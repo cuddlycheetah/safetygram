@@ -13,6 +13,7 @@ const { sequelize,
     User, UserInfo, UserNameset,
     Message, MessageEdit } =  require('./database.js')
 
+const fs = require('fs')
 const md5 = require('siwi-md5')
 const airgram = require('./airgram')
 const tgsync = require('./tgsync')
@@ -20,15 +21,18 @@ const tgsync = require('./tgsync')
 app.use(require('body-parser').json())
 app.use(require('morgan')('dev'))
 
-app.get('/', (req, res) => res.send('hello from the other side(api)'))
+app.use(express.static('app_html'))
+
 API.setup(app)
+app.get('*', (req, res) => res.redirect('/'))
 
 
 async function main() {
+    if (fs.existsSync('cache') == false) fs.mkdirSync('cache')
     await sequelize.authenticate()
     .then(() => {
         console.log('Connection has been established successfully.');
-        app.listen(process.env.PORT || Settings.get('port', 46590))
+        app.listen(Settings.get('port', 46590))
         console.log('Express server listening')
 
         return User.sync()

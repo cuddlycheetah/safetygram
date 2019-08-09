@@ -1,5 +1,5 @@
 const { Sequelize, Model } = require('sequelize')
-
+const Settings = require('./Settings')
 class User extends Model {}
 class UserInfo extends Model {}
 class UserNameset extends Model {}
@@ -8,16 +8,15 @@ class MessageEdit extends Model {}
 
 const sequelize = new Sequelize({
     database: 'safetygram',
-    dialect: 'mysql',
-    username: 'safetygram',
-    password: 'niggers',
+    ...Settings.get('dbSettings', {
+        dialect: 'sqlite',
+        storage: '../safetygram.db',
+    }),
     define: {
         charset: 'utf8mb4',
         collate: 'utf8mb4_unicode_ci',
         timestamps: true
     },
-    host: '127.0.0.1',
-    //storage: './safetygram.db',
     models: [
         User,
         UserInfo,
