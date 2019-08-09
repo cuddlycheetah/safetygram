@@ -1,3 +1,12 @@
+![GitHub](https://img.shields.io/github/license/cuddlycheetah/safetygram)
+![Telegram](https://img.shields.io/badge/telegram-%40SafetygramApp-blue)
+
+![Docker Pulls](https://img.shields.io/docker/pulls/cuddlycheetah/safetygram?style=for-the-badge)
+![Docker Automated build](https://img.shields.io/docker/automated/cuddlycheetah/safetygram?style=for-the-badge)
+![Docker Pulls](https://img.shields.io/docker/pulls/cuddlycheetah/safetygram?style=for-the-badge)
+![Docker Stars](https://img.shields.io/docker/stars/cuddlycheetah/safetygram?style=for-the-badge)
+
+
 # Safetygram
 Logging all Messages for Telegram Private Chats. Useful when People delete messages, 
 
@@ -30,7 +39,7 @@ There is already an packed docker image for simple-install
 ```
 # for installing
 docker pull cuddlycheetah/safetygram
-docker run cuddlycheetah/safetygram
+docker run -v /etc/safetygram/:/etc/safetygram/ -p 46590:46590 -d cuddlycheetah/safetygram
 
 # for debugging
 docker exec -it <name> pm2 log index
