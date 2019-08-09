@@ -36,6 +36,14 @@ This Github Repository already contains a prebuilt binary for alpine linux.
 There is already an packed docker image for simple-install
 [cuddlycheetah/safetygram](https://hub.docker.com/r/cuddlycheetah/safetygram)
 
+#### using Docker Composer
+```
+wget https://raw.githubusercontent.com/cuddlycheetah/safetygram/master/docker-compose.yml -O docker-compose.yml
+docker-compose pull
+docker-compose up -d
+```
+
+
 ```
 # for installing
 docker pull cuddlycheetah/safetygram
