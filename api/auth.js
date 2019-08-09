@@ -2,7 +2,7 @@ const jwt = require("jwt-simple")
 const Settings = require('../Settings')
 const UUIDV4 = require('uuid/v4')
 const md5 = require('siwi-md5')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 
 const JWT_SECRET = 'SAFETYGRAM_'// + UUIDV4()
 const airgram = require('../airgram')
