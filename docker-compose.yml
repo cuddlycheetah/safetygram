@@ -6,4 +6,6 @@ services:
       - /etc/safetygram/:/etc/safetygram/
     expose:
       - "46590"
+    ports:
+      - "46590:46590"
     tty: true
