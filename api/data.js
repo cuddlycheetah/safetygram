@@ -36,6 +36,34 @@ module.exports = (router, route, Schema) => {
             res.status(412).json({ msg: error.message });
         });
     })
+    router.get(route + '/@page/desc/:chatid/:page', (req, res) => {
+        Schema.findAll({ 
+            where: { 
+                chatId: req.params.chatid
+            },
+            order: sequelize.literal('id DESC'),
+            limit: PAGE_SIZE,
+            offset: PAGE_SIZE * (parseInt(req.params.page) | 0)
+        })
+        .then(result => res.json(result))
+        .catch(error => {
+            res.status(412).json({ msg: error.message });
+        });
+    })
+    router.get(route + '/:chatid/@limit/:limit/@offset/:offset', (req, res) => {
+        Schema.findAll({ 
+            where: { 
+                chatId: req.params.chatid
+            },
+            order: sequelize.literal('id DESC'),
+            limit: (parseInt(req.params.limit) | 0),
+            offset: (parseInt(req.params.offset) | 0)
+        })
+        .then(result => res.json(result))
+        .catch(error => {
+            res.status(412).json({ msg: error.message });
+        });
+    })
       /*.post((req, res) => {
         Schema.create(req.body)
           .then(result => res.json(result))
