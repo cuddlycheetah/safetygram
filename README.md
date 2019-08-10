@@ -2,7 +2,7 @@
 ![Telegram](https://img.shields.io/badge/telegram-%40SafetygramApp-blue)
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/cuddlycheetah/safetygram?style=for-the-badge)
-![Docker Automated build](https://img.shields.io/docker/automated/cuddlycheetah/safetygram?style=for-the-badge)
+![Docker Automated build](https://img.shields.io/badge/DOCKER%20BUILD-AUTOMATED-blue?style=for-the-badge)
 ![Docker Pulls](https://img.shields.io/docker/pulls/cuddlycheetah/safetygram?style=for-the-badge)
 ![Docker Stars](https://img.shields.io/docker/stars/cuddlycheetah/safetygram?style=for-the-badge)
 
@@ -33,11 +33,11 @@ What things you need to install the software and how to install them
 ## Installing
 
 This Github Repository already contains a prebuilt binary for alpine linux.
-There is already an packed docker image for simple-install [cuddlycheetah/safetygram](https://hub.docker.com/r/cuddlycheetah/safetygram)
+There is already an auto-built docker image for simple-install [cuddlycheetah/safetygram](https://hub.docker.com/r/cuddlycheetah/safetygram).
 
-### using Docker Composer
+### using Docker Composer (recommended)
 
-```
+```bash
 wget https://raw.githubusercontent.com/cuddlycheetah/safetygram/master/docker-compose.yml -O docker-compose.yml
 docker-compose pull
 docker-compose up -d
@@ -45,14 +45,17 @@ docker-compose up -d
 
 ### using Manual Docker
 
+for installing
 ```
-# for installing
 docker pull cuddlycheetah/safetygram
 docker run -v /etc/safetygram/:/etc/safetygram/ -p 46590:46590 -d cuddlycheetah/safetygram
+```
 
-# for debugging
+for debugging
+```
 docker exec -it <name> pm2 log index
 ```
+
 ## Configuring Docker Composer
 
 You can modify this line in docker-compose.yml
