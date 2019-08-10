@@ -7,3 +7,7 @@ services:
     ports:
       - "0.0.0.0:46590:46590/tcp"
     tty: true
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

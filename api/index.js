@@ -76,9 +76,13 @@ module.exports = exports = {
         this.router.get('/file/fetch/:fileId', async (req, res) => {
             console.log(req.params.fileId)
             const fileId = req.params.fileId
-            let $file = require('path').join(__dirname, '/../cache/' + fileId)
-            let $readStream = await downloadFile(fileId, $file)
-            return res.sendFile($file)
+            try {
+              let $file = require('path').join(__dirname, '/../cache/' + fileId)
+              let $readStream = await downloadFile(fileId, $file)
+              return res.sendFile($file)
+            } catch (e) {
+              return res.abort(e);
+            }
             /*airgram.api.downloadFile({
                 fileId: req.params.fileId,
                 synchronous: true,
