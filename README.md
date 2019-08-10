@@ -3,7 +3,6 @@
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/cuddlycheetah/safetygram?style=for-the-badge)
 ![Docker Automated build](https://img.shields.io/badge/DOCKER%20BUILD-AUTOMATED-blue?style=for-the-badge)
-![Docker Pulls](https://img.shields.io/docker/pulls/cuddlycheetah/safetygram?style=for-the-badge)
 ![Docker Stars](https://img.shields.io/docker/stars/cuddlycheetah/safetygram?style=for-the-badge)
 
 
