@@ -7,13 +7,24 @@
 
 
 # Safetygram
-Logging all Messages for Telegram Private Chats. Useful when People delete messages, 
+Logging all Messages for Telegram Private Chats. Useful when People delete messages, complete chats.
+
+* Features:
+- Customizeable Bot Token
+- Notify you via a Bot, when a Chat gets deleted,
+- Backlogs all Messages, Username/Displayname/Bio/ProfilePhoto changes.
+- Supports SQLite3(Default), MySQL, MariaDB, PostgreSQL
+- Accessible through HTTP on Port 46590
+
+News, Updates, Discussion and Support: https://t.me/SafetygramApp
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your machine. See deployment for notes on how to deploy the project on a live system.
 
 ## Settings
+!!!IMPORTANT!!! Please create a Bot via @BotFather and Paste the Bot Token inside the Settings Menu and apply it. The Service will restart itself after changing the token.
+Please write the Bot a message(it can be anything or just /start) so it can message you on events.
 
 There is a settings.json inside the Docker Container (/etc/safetygram/settings.json)
 You can change the port of this service by changing "port" to whatever port you want.
@@ -63,7 +74,7 @@ You can modify this line in docker-compose.yml
       - "0.0.0.0:46590:46590/tcp"
 ```
 ## Building Docker Image
-
+The Image is compiled with alpine Linux
 ```
 docker build -t cuddlycheetah/safetygram .
 docker run -d cuddlycheetah/safetygram
