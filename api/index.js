@@ -1,7 +1,8 @@
 const express = require('express')
-const { sequelize, 
-    User, UserInfo, UserNameset,
-    Message, MessageEdit } =  require('../database')
+const { sequelize,
+  Chat, ChatNameset,
+  User, UserInfo, UserNameset,
+  Message, MessageEdit } =  require('../database')
 const airgram = require('../airgram')
 const Settings = require('../Settings')
 
@@ -66,36 +67,40 @@ module.exports = exports = {
 
         require('./crest')(this.routerProtectedCustom)
 
+        rest(this.routerProtected, '/chat', Chat)
+        rest(this.routerProtected, '/chatnameset', ChatNameset)
+
         rest(this.routerProtected, '/user', User)
         rest(this.routerProtected, '/usernameset', UserNameset)
         rest(this.routerProtected, '/userinfo', UserInfo)
         rest(this.routerProtected, '/message', Message)
         rest(this.routerProtected, '/messageedit', MessageEdit)
 
-
-        this.router.get('/file/fetch/:fileId', async (req, res) => {
-            console.log(req.params.fileId)
-            const fileId = req.params.fileId
-            try {
-              let $file = require('path').join(__dirname, '/../cache/' + fileId)
-              let $readStream = await downloadFile(fileId, $file)
-              return res.sendFile($file)
-            } catch (e) {
-              return res.abort(e);
-            }
-            /*airgram.api.downloadFile({
-                fileId: req.params.fileId,
-                synchronous: true,
-                priority: 3,
-            })
-            .then((fileInfo) => {
-                console.log(fileInfo)
-                let localFile = fileInfo.local
-                if (!fileInfo.local) return res.status(404).send(null)
-                return res.sendFile(localFile.path)
-            })
-            .catch(console.error)*/
-        })
+        const fetchFile = async (req, res) => {
+          console.log(req.params.fileId)
+          const fileId = req.params.fileId
+          try {
+            let $file = '/etc/safetygram/cache/' + fileId
+            let $readStream = await downloadFile(fileId, $file)
+            return res.sendFile($file)
+          } catch (e) {
+            return res.abort(e);
+          }
+          /*airgram.api.downloadFile({
+              fileId: req.params.fileId,
+              synchronous: true,
+              priority: 3,
+          })
+          .then((fileInfo) => {
+              console.log(fileInfo)
+              let localFile = fileInfo.local
+              if (!fileInfo.local) return res.status(404).send(null)
+              return res.sendFile(localFile.path)
+          })
+          .catch(console.error)*/
+        }
+        this.router.get('/file/fetch/:fileId', fetchFile)
+        this.router.get('/file/fetch/:fileId/*', fetchFile)
         
         this.router.use('/rest', require('./auth').middleware, this.routerProtected)
         this.router.use('/crest', require('./auth').middleware, this.routerProtectedCustom)

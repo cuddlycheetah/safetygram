@@ -15,6 +15,20 @@ module.exports = (router, route, Schema) => {
                 res.status(412).json({ msg: error.message });
             });
     })
+    router.get(route + '/desc', (req, res) => {
+        Schema.findAll(req.query ? { where: req.query, order: sequelize.literal('createdAt DESC'), } : {})
+            .then(result => res.json(result))
+            .catch(error => {
+                res.status(412).json({ msg: error.message });
+            });
+    })
+    router.get(route + '/asc', (req, res) => {
+        Schema.findAll(req.query ? { where: req.query, order: sequelize.literal('createdAt ASC'), } : {})
+            .then(result => res.json(result))
+            .catch(error => {
+                res.status(412).json({ msg: error.message });
+            });
+    })
     router.get(route + '/@count', (req, res) => {
         Schema.count(req.query ? { where: req.query } : {})
             .then(result => res.json(result))

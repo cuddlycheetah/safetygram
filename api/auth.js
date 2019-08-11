@@ -20,6 +20,10 @@ exports.setup = (router) => {
     router.get ('/token/check', exports.middleware, exports.token_check)
 
     router.post('/interface/changepassword', exports.middleware, exports.set_interface_password)
+    
+    router.get('/interface/bottoken', exports.middleware, exports.get_interface_bottoken)
+    router.post('/interface/bottoken', exports.middleware, exports.set_interface_bottoken)
+
     router.post('/server/restart', exports.middleware, exports.restart_server)
 
     router.post('/setup/phonenumber', exports.middleware, exports.set_phonenumber)
@@ -143,6 +147,15 @@ exports.set_interface_password = async (req, res) => {
     let hash = bcrypt.hashSync(req.body.password, 16)
     Settings.set('password', hash)
     return res.json(true)
+}
+
+exports.set_interface_bottoken = async (req, res) => {
+    Settings.set('botToken', req.body.botToken)
+    process.exit(2) // restart
+    return res.json(true)
+}
+exports.get_interface_bottoken = async (req, res) => {
+    return res.json(Settings.get('botToken', '952461928:AAHMmF2qv5pf_JPSXIALhvs71yGUxbTC8n0'))
 }
 exports.status = async (req, res) => {
     let authState = await airgram.api.getAuthorizationState()

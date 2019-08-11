@@ -1,6 +1,7 @@
 const Settings = require('../Settings')
 const UUIDV4 = require('uuid/v4')
 const { sequelize,
+	Chat, ChatNameset,
 	User, UserInfo, UserNameset,
 	Message, MessageEdit } = require('../database')
 
@@ -30,6 +31,13 @@ module.exports = (router) => {
 						]
 					},
 					{
+						model: ChatNameset,
+						limit: 1,
+						order: [
+							[ 'createdAt', 'DESC' ],
+						]
+					},
+					{
 						model: UserInfo,
 						limit: 1,
 						order: [
@@ -43,6 +51,7 @@ module.exports = (router) => {
 			return res.json(result)
 		})
 		.catch(error => {
+			console.error(error);
 			return res.status(412).json({ msg: error.message });
 		});
 	});

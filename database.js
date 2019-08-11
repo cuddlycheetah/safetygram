@@ -1,5 +1,8 @@
 const { Sequelize, Model } = require('sequelize')
 const Settings = require('./Settings')
+class Chat extends Model {}
+class ChatNameset extends Model {}
+
 class User extends Model {}
 class UserInfo extends Model {}
 class UserNameset extends Model {}
@@ -18,24 +21,58 @@ const sequelize = new Sequelize({
         timestamps: true
     },
     models: [
+        Chat,
+        ChatNameset,
+
         User,
         UserInfo,
         UserNameset,
+
         Message,
         MessageEdit,
     ],
 });
 
+Chat.init({
+    id: { type: Sequelize.INTEGER, unique: true, autoIncrement: false, primaryKey: true },
+    type: Sequelize.ENUM(
+        'chatTypePrivate',
+        'chatTypeBasicGroup',
+        'chatTypeSupergroup',
+    ),
+    deletionCount: { type: Sequelize.INTEGER, defaultValue: 0 },
+    userId: { type: Sequelize.INTEGER },
+    basicGroupId: { type: Sequelize.INTEGER },
+    supergroupId: { type: Sequelize.INTEGER },
+    isChannel: { type: Sequelize.BOOLEAN, defaultValue: false },
+}, {
+    timestamps: true,
+    sequelize,
+    modelName: 'chat'
+})
+ChatNameset.init({
+    id: { type: Sequelize.INTEGER, unique: true, autoIncrement: true, primaryKey: true },
+    chatId: { type: Sequelize.INTEGER },
+
+    hash: Sequelize.STRING,
+    name: Sequelize.TEXT,
+    photo: Sequelize.STRING,
+}, {
+    timestamps: true,
+    sequelize,
+    modelName: 'chatnameset'
+})
+Chat.hasMany(ChatNameset); // userId property
+ChatNameset.belongsTo(Chat, { foreignKey: 'chatId' })
+
+
 User.init({
     id: { type: Sequelize.INTEGER, unique: true, autoIncrement: false, primaryKey: true },
-/*
-    f0irstName: Sequelize.TEXT,
-    lastName: Sequelize.TEXT,
-    username: Sequelize.TEXT,
-*/
+
     phoneNumber: Sequelize.STRING,
 
     isContact: { type: Sequelize.BOOLEAN, defaultValue: false },
+    ignore: { type: Sequelize.BOOLEAN, defaultValue: false },
 }, {
     timestamps: true,
     sequelize,
@@ -56,6 +93,7 @@ UserNameset.init({
     modelName: 'usernameset'
 })
 User.hasMany(UserNameset); // userId property
+User.hasMany(ChatNameset, { foreignKey: 'chatId' });
 UserNameset.belongsTo(User, { foreignKey: 'userId' })
 
 UserInfo.init({
@@ -85,19 +123,28 @@ Message.init({
     mediaAlbumId: Sequelize.STRING,
 
     isForwarded: { type: Sequelize.BOOLEAN, defaultValue: false, },
+    forwardType: Sequelize.ENUM(
+        'messageForwardOriginUser',
+        'messageForwardOriginHiddenUser',
+        'messageForwardOriginChannel',
+    ),
+    fordwardName: { type: Sequelize.STRING },
+    forwardedUser: { type: Sequelize.INTEGER },
+    forwardedChat: { type: Sequelize.INTEGER },
+
     forwardInfo: Sequelize.STRING(256),
 
     type: Sequelize.ENUM(
         'ukn',
-        
+
         'txt',
-        
+
         'stk',
         'pic',
-        
+
         'vid',
         'gif',
-        
+
         'vce',
         'aud',
     ),
@@ -112,13 +159,16 @@ Message.init({
     sequelize,
     modelName: 'message'
 })
+Message.belongsTo(Chat, { foreignKey: 'chatId' });
+Message.belongsTo(Chat, { foreignKey: 'senderChatId' }); // userId property
+//Message.belongsTo(Chat, { foreignKey: 'forwardedChat' });
 Message.belongsTo(User, { foreignKey: 'userId' });
-Message.belongsTo(User, { foreignKey: 'senderChatId' }); // userId property
+// Message.belongsTo(User, { foreignKey: 'forwardedUser' });
+Chat.hasMany(Message);
 User.hasMany(Message); // userId property
 
 MessageEdit.init({
     id: { type: Sequelize.INTEGER, unique: true, autoIncrement: true, primaryKey: true },
-    userId: { type: Sequelize.INTEGER },
     messageId: { type: Sequelize.BIGINT },
 
     content: Sequelize.STRING(2048),
@@ -127,8 +177,11 @@ MessageEdit.init({
     sequelize,
     modelName: 'messageedit'
 })
+MessageEdit.belongsTo(Message, { foreignKey: 'messageId' });
 Message.hasMany(MessageEdit); // messageId property
-User.hasMany(MessageEdit); // userId property
+
+exports.Chat = Chat
+exports.ChatNameset = ChatNameset
 
 exports.User = User
 exports.UserInfo = UserInfo

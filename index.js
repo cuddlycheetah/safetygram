@@ -9,11 +9,13 @@ const app = express()
 const every = require('every')
 const API = require('./api')
 
-const { sequelize, 
+const { sequelize,
+    Chat, ChatNameset,
     User, UserInfo, UserNameset,
-    Message, MessageEdit } =  require('./database.js')
+    Message, MessageEdit } =  require('./database')
 
 const fs = require('fs')
+const request = require('request')
 const md5 = require('siwi-md5')
 const airgram = require('./airgram')
 const tgsync = require('./tgsync')
@@ -28,7 +30,7 @@ app.get('*', (req, res) => res.redirect('/'))
 
 
 async function main() {
-    if (fs.existsSync('cache') == false) fs.mkdirSync('cache')
+    if (fs.existsSync('/etc/safetygram/cache/') == false) fs.mkdirSync('/etc/safetygram/cache/')
     await sequelize.authenticate()
     .then(() => {
         console.log('Connection has been established successfully.');
@@ -38,8 +40,13 @@ async function main() {
         return User.sync()
         .then(UserInfo.sync())
         .then(UserNameset.sync())
+
         .then(Message.sync())
         .then(MessageEdit.sync())
+
+        .then(Chat.sync())
+        .then(ChatNameset.sync())
+
         .then(async () => {
             let authState = await airgram.api.getAuthorizationState()
             console.log(
@@ -56,7 +63,15 @@ async function main() {
     });
 }
 
-
+/*
+updateBasicGroup
+updateNewChat
+updateChatReadInbox
+updateChatLastMessage
+updateChatNotificationSettings
+updateBasicGroupFullInfo
+updateUserStatus
+*/
 
 airgram.updates.on(UPDATE.updateUser, async ({ update }) => {
     if (!!update.user && !!update.user.type && update.user.type._ !== 'userTypeRegular') return console.error('User ignored, because not userTypeRegular', update.user.type._)
@@ -204,26 +219,13 @@ function convertContent(content) {
 
 
 
-
 /**
  * * Eingehende Nachrichten in der Datenbank erstellen
  */
 airgram.updates.on(UPDATE.updateNewMessage, async ({ update }) => {
     let chat = await airgram.api.getChat({ chatId: update.message.chatId });
+    tgsync.handleChatStats(chat)
 //    console.log(update)
-//    console.log(chat)
-/*
-forwardInfo:
-   { _: 'messageForwardInfo',
-     origin:
-      { _: 'messageForwardOriginChannel',
-        chatId: -1001088649810,
-        messageId: 681311207424,
-        authorSignature: '' },
-     date: 1561721458,
-     fromChatId: 0,
-     fromMessageId: 0 },
-*/
     if (chat._ == 'chat' && chat.type._ == 'chatTypePrivate') {
         let messageEntry = await Message.findByPk(update.message.id)
         if (!messageEntry) {
@@ -231,7 +233,7 @@ forwardInfo:
             console.log(update.message)
             console.log(JSON.stringify(contentData, null, '\n'))
             const date = new Date( update.message.date * 1000 )
-            const newMessageEntry = new Message({
+            const newMessageData = {
                 id: update.message.id,
 
                 chatId: update.message.chatId,
@@ -239,9 +241,7 @@ forwardInfo:
                 senderChatId: update.message.senderChatId,
 
                 isOutgoing: update.message.isOutgoing,
-
                 isForwarded: !!update.message.forwardInfo,
-                // forwardInfo: !!update.message.forwardInfo ? JSON.stringify(update.message.forwardInfo) : '',
 
                 replyToMessageId: update.message.replyToMessageId,
                 mediaAlbumId: update.message.mediaAlbumId,
@@ -251,8 +251,25 @@ forwardInfo:
                 deleted: false,
 
                 createdAt: date,
-                updatedAAt: date,
-            })
+                updatedAt: date,
+            }
+            if (newMessageData.isForwarded) {
+                switch (update.message.forwardInfo.origin._) {
+                    case 'messageForwardOriginUser':
+                        newMessageData.forwardedUser = update.message.forwardInfo.origin.senderUserId
+                        tgsync.handleChatStats(await airgram.api.getChat({ chatId: newMessageData.forwardedUser }))
+                        break;
+                    case 'messageForwardOriginHiddenUser':
+                        newMessageData.fordwardName = update.message.forwardInfo.origin.senderName
+                        break;
+                    case 'messageForwardOriginChannel':
+                        newMessageData.fordwardName = update.message.forwardInfo.origin.authorSignature
+                        newMessageData.forwardedChat = update.message.forwardInfo.origin.chatId
+                        tgsync.handleChatStats(await airgram.api.getChat({ chatId: newMessageData.forwardedChat }))
+                        break;
+                }
+            }
+            const newMessageEntry = new Message(newMessageData)
             await newMessageEntry.save()
         }
     }
@@ -296,11 +313,58 @@ airgram.updates.on(UPDATE.updateMessageContent, async ({ update }) => {
     }
 })
 
-/*airgram.updates.on('', async ({ update }) => {
+airgram.updates.on(UPDATE.updateSupergroup, async ({ update }) => {
+    // console.log(update)
+})
+/*airgram.updates.on(UPDATE.updateUserStatus, async ({ update }) => { // * On/Offline Events
     console.log(update)
 })*/
+airgram.updates.on(UPDATE.updateChatPhoto, async ({ update }) => {
+    await tgsync.syncChat(update.chatId)
+})
+airgram.updates.on(UPDATE.updateChatLastMessage, async ({ update }) => {
+    // ! { _: 'updateChatLastMessage', chatId: 841718866, order: '0' }
+    // * When the lastMessage Update has no message property, the Chat has been DELETED by the other Partner. In this case we want to alarm the Account Owner
+    if (!update.lastMessage) {
+        // deletionCount
+        let chatEntry = await Chat.findByPk(update.chatId)
+        if (!!chatEntry) {
+            let lastOrNoEntry = chatEntry.type === 'chatTypePrivate'
+                ? (await UserNameset.findAll({
+                    limit: 1,
+                    where: {
+                        userId: chatEntry.id
+                    },
+                    order: [ [ 'createdAt', 'DESC' ]]
+                }))
+                : (await ChatNameset.findAll({
+                    limit: 1,
+                    where: {
+                        chatId: chatEntry.id
+                    },
+                    order: [ [ 'createdAt', 'DESC' ]]
+                }))
+            // 
+            chatEntry.deletionCount = chatEntry.deletionCount + 1
+            await chatEntry.save()
 
-airgram.updates.use(({ update }) => {
+            const chatName = lastOrNoEntry.length == 0
+                ? 'No Chat Name'
+                : (
+                    chatEntry.type === 'chatTypePrivate'
+                        ? `${ lastOrNoEntry[0].firstName } ${ lastOrNoEntry[0].lastName } @${ lastOrNoEntry[0].username }`
+                        : `${ lastOrNoEntry[0].name }`
+                )
+            const text = encodeURIComponent(
+                `WARNING The Chat for ${ chatName }#${ chatEntry.id } has been Deleted`
+                )
+            request(`https://api.telegram.org/bot${ Settings.get('botToken', '952461928:AAHMmF2qv5pf_JPSXIALhvs71yGUxbTC8n0') }/sendMessage?chat_id=${ Settings.get('me', { id: 0 }).id }&text=${ text }`)
+        }
+    }
+    // console.log(update)
+})
+airgram.updates.use(({ update }) => { // ! Debug
+    if ( update._ === 'updateUserStatus') return false;
     console.log( update._ )
 })
 
@@ -330,23 +394,50 @@ user:
     haveAccess: true,
     type: { _: 'userTypeRegular' },
     languageCode: '' } }
-updateUserFullInfo { _: 'upda
 */
 
-/*
-airgram.updates.on(UPDATE.updateUserFullInfo, ({ update }) => {
-    console.log(update)
-})
+/**
+ * 
+{ _: 'chat',
+  id: 841718866,
+  type: { _: 'chatTypePrivate', userId: 841718866 },
+  title: 'Brokerdienst für Laufzeitüberwachung der Systemüberwachung',
+  photo:
+   { _: 'chatPhoto',
+     small:
+      { _: 'file',
+        id: 3,
+        size: 0,
+        expectedSize: 0,
+        local: [Object],
+        remote: [Object] },
+     big:
+      { _: 'file',
+        id: 4,
+        size: 0,
+        expectedSize: 0,
+        local: [Object],
+        remote: [Object] } },
 
 
-airgram.updates.on(UPDATE.updateMessageEdited, async ({ update }) => {
-    if(update) {
-    const editedMessage = await airgram.api.getMessage({
-        chatId: update.chatId,
-        messageId: update.messageId,
-    })
-    console.log(update, editedMessage)
-    }
-})
-*/
+{ _: 'chat',
+  id: -369312457,
+  type: { _: 'chatTypeBasicGroup', basicGroupId: 369312457 },
+  title: 'test',    
+    
+{ _: 'chat',
+  id: -1001260453068,
+  type:
+   { _: 'chatTypeSupergroup',
+     supergroupId: 1260453068,
+     isChannel: false },
+  title: 'test',
+  lastMessage:
+   { _: 'message',
+     id: 2097152,
+     senderUserId: 841718866,
+     chatId: -1001260453068,
+     isOutgoing: false,
+     canBeEdited: false,
+ */
 main();
