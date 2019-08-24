@@ -2,6 +2,7 @@ version: '2'
 services:
   application:
     image: cuddlycheetah/safetygram
+    restart: unless-stopped
     volumes:
       - /etc/safetygram/:/etc/safetygram/
     ports:
