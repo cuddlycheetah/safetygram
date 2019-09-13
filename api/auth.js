@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs')
 const JWT_SECRET = 'SAFETYGRAM_'// + UUIDV4()
 const airgram = require('../airgram')
 
+const request = require('request')
 const tgsync = require('../tgsync')
 
 function expiresIn(numDays) {
@@ -21,6 +22,9 @@ exports.setup = (router) => {
 
     router.post('/interface/changepassword', exports.middleware, exports.set_interface_password)
     
+    router.get('/interface/language', exports.get_interface_lang)
+    router.post('/interface/language', exports.middleware, exports.set_interface_lang)
+
     router.get('/interface/bottoken', exports.middleware, exports.get_interface_bottoken)
     router.post('/interface/bottoken', exports.middleware, exports.set_interface_bottoken)
 
@@ -39,6 +43,10 @@ exports.token_validate = async (req, res) => {
             exp: expires,
             token: exports.token
         }, JWT_SECRET)
+        const text = encodeURIComponent(
+            `New Login from ${ req.headers['x-forwarded-for'] || req.connection.remoteAddress }`
+        )
+        request(`https://api.telegram.org/bot${ Settings.get('botToken', '952461928:AAHMmF2qv5pf_JPSXIALhvs71yGUxbTC8n0') }/sendMessage?chat_id=${ Settings.get('me', { id: 0 }).id }&text=${ text }`)
         return res.json(JWTToken)
     }
     return res.json(false)
@@ -48,15 +56,15 @@ exports.token_check = (req, res) => {
 }
 exports.middleware = function (req, res, next) {
     if (Settings.get('password', '').length == 0) {
-        console.log(res.json)
+        // console.log(res.json)
         next();
     } else {
         const token = (req.body && req.body.Authorization) || (req.query && req.query.Authorization) || req.headers['authorization'];
-        console.log(token, req.headers)
+        // console.log(token, req.headers)
         if (token) {
             try {
                 const decoded = jwt.decode(token, JWT_SECRET)
-                console.log(decoded)
+                // console.log(decoded)
                 if (decoded.exp <= Date.now()) {
                     return res.status(400).json('Token Expired')
                 }
@@ -157,6 +165,15 @@ exports.set_interface_bottoken = async (req, res) => {
 exports.get_interface_bottoken = async (req, res) => {
     return res.json(Settings.get('botToken', '952461928:AAHMmF2qv5pf_JPSXIALhvs71yGUxbTC8n0'))
 }
+exports.set_interface_lang = async (req, res) => {
+    Settings.set('lang', req.body.lang)
+    return res.json(true)
+}
+exports.get_interface_lang = async (req, res) => {
+    return res.json(Settings.get('lang', 'en'))
+}
+
+
 exports.status = async (req, res) => {
     let authState = await airgram.api.getAuthorizationState()
     return res.json({

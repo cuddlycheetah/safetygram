@@ -139,12 +139,26 @@ airgram.updates.on(UPDATE.updateUserFullInfo, async ({ update }) => {
         console.error('got fullinfo for user that isnt in db WTF??')
     }
 })
+
+
+
+
+/**
+ * Converts nested JSON Data to something useful to store in the DB
+ * @param {Object} content 
+ */
 function convertContent(content) {
     console.log(require('util').inspect(content))
     switch (content._) {
         case 'formattedText':
             return content.text
-
+        /** * Voice Note */
+        case 'voiceNote':
+            return [
+                content.mimeType,
+                content.duration,
+                convertContent(content.file)
+            ]
         /** * Photo */
         case 'photo':
             return convertContent(content.sizes[ content.sizes.length - 1 ])
@@ -188,6 +202,8 @@ function convertContent(content) {
                 'txt',
                 convertContent(content.text)
             ]
+        case 'messageVoiceNote':
+            return convertContent(content.voiceNote)
         case 'messageAnimation':
             return [
                 'gif',
@@ -223,9 +239,9 @@ function convertContent(content) {
  * * Eingehende Nachrichten in der Datenbank erstellen
  */
 airgram.updates.on(UPDATE.updateNewMessage, async ({ update }) => {
+    console.log(update)
     let chat = await airgram.api.getChat({ chatId: update.message.chatId });
     tgsync.handleChatStats(chat)
-//    console.log(update)
     if (chat._ == 'chat' && chat.type._ == 'chatTypePrivate') {
         let messageEntry = await Message.findByPk(update.message.id)
         if (!messageEntry) {
@@ -313,6 +329,27 @@ airgram.updates.on(UPDATE.updateMessageContent, async ({ update }) => {
     }
 })
 
+/*airgram.updates.on(UPDATE.updateSecretChat, async ({ update }) => {
+    console.log('updateSecretChat', update)
+    if (update.secretChat.state._ === 'secretChatStatePending') {
+        await airgram.api.setOption('online', { _: 'optionValueBoolean', value: true, });
+    }
+    if (update.secretChat.state._ === 'secretChatStateReady') {
+        console.log('created secret chat')
+        // const createdSecretChat = await airgram.api.createSecretChat(update.secretChat.id);
+
+        const chat = await airgram.api.createSecretChat(update.secretChat.id);
+        console.log(chat);
+        await airgram.api.sendMessage({
+            chatId: chat.id,
+            inputMessageContent: {
+                '_': 'inputMessageText',
+                'text': 'Automatische Antwort Test',
+            }
+        })
+
+    }
+})*/
 airgram.updates.on(UPDATE.updateSupergroup, async ({ update }) => {
     // console.log(update)
 })
@@ -355,9 +392,10 @@ airgram.updates.on(UPDATE.updateChatLastMessage, async ({ update }) => {
                         ? `${ lastOrNoEntry[0].firstName } ${ lastOrNoEntry[0].lastName } @${ lastOrNoEntry[0].username }`
                         : `${ lastOrNoEntry[0].name }`
                 )
+            
             const text = encodeURIComponent(
                 `WARNING The Chat for ${ chatName }#${ chatEntry.id } has been Deleted`
-                )
+            )
             request(`https://api.telegram.org/bot${ Settings.get('botToken', '952461928:AAHMmF2qv5pf_JPSXIALhvs71yGUxbTC8n0') }/sendMessage?chat_id=${ Settings.get('me', { id: 0 }).id }&text=${ text }`)
         }
     }
@@ -365,79 +403,8 @@ airgram.updates.on(UPDATE.updateChatLastMessage, async ({ update }) => {
 })
 airgram.updates.use(({ update }) => { // ! Debug
     if ( update._ === 'updateUserStatus') return false;
-    console.log( update._ )
+    // console.log( update._ )
 })
 
 
-
-
-
-/*
-user:
-    { _: 'user',
-    id: 777000,
-    firstName: 'Telegram',
-    lastName: '',
-    username: '',
-    phoneNumber: '42777',
-    status: { _: 'userStatusOffline', wasOnline: 1495493589 },
-    profilePhoto:
-        { _: 'profilePhoto',
-        id: '3337190045231018',
-        small: [Object],
-        big: [Object] },
-    outgoingLink: { _: 'linkStateNone' },
-    incomingLink: { _: 'linkStateNone' },
-    isVerified: true,
-    isSupport: true,
-    restrictionReason: '',
-    haveAccess: true,
-    type: { _: 'userTypeRegular' },
-    languageCode: '' } }
-*/
-
-/**
- * 
-{ _: 'chat',
-  id: 841718866,
-  type: { _: 'chatTypePrivate', userId: 841718866 },
-  title: 'Brokerdienst für Laufzeitüberwachung der Systemüberwachung',
-  photo:
-   { _: 'chatPhoto',
-     small:
-      { _: 'file',
-        id: 3,
-        size: 0,
-        expectedSize: 0,
-        local: [Object],
-        remote: [Object] },
-     big:
-      { _: 'file',
-        id: 4,
-        size: 0,
-        expectedSize: 0,
-        local: [Object],
-        remote: [Object] } },
-
-
-{ _: 'chat',
-  id: -369312457,
-  type: { _: 'chatTypeBasicGroup', basicGroupId: 369312457 },
-  title: 'test',    
-    
-{ _: 'chat',
-  id: -1001260453068,
-  type:
-   { _: 'chatTypeSupergroup',
-     supergroupId: 1260453068,
-     isChannel: false },
-  title: 'test',
-  lastMessage:
-   { _: 'message',
-     id: 2097152,
-     senderUserId: 841718866,
-     chatId: -1001260453068,
-     isOutgoing: false,
-     canBeEdited: false,
- */
 main();

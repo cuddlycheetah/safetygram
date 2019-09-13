@@ -1,0 +1,87 @@
+{
+	"auth": {
+		"change_password": "Change Password",
+		"checklocalstorage": "Checking Token",
+		"gatheringconfig": "Gathering Config",
+		"loggingin": "Signing in",
+		"login": "Login",
+		"password": "Password",
+		"password2": "Repeat Password",
+		"title": "Authenticate"
+	},
+	"chat": {
+		"infos": {
+			"chat": "Chat",
+			"debug": "Debug",
+			"identities": "Previous Identities"
+		},
+		"message": {
+			"forwardinfo": {
+				"chat": "Forwarded from",
+				"user": "Forwarded from"
+			},
+			"history": "History",
+			"menu": {
+				"openintg": "Open in Telegram"
+			}
+		}
+	},
+	"language": {
+		"de": "German",
+		"en": "English",
+		"select": "Change Language"
+	},
+	"menu": {
+		"donate": "Donate",
+		"home": "Home",
+		"logout": "Logout",
+		"settings": "Settings",
+		"user": "Users"
+	},
+	"settings": {
+		"botToken": "Bot Token",
+		"botTokenChange": "Change Bot Token",
+		"bottoken": {
+			"load": "Loading Bot Token",
+			"set": "Saving Bot Token",
+			"success": {
+				"alert": {
+					"title": "Successfully changed"
+				}
+			}
+		},
+		"title": "Settings"
+	},
+	"setup": {
+		"back": "Back",
+		"finished": {
+			"set_interface_password": "Setup finished, please set a Interface-Password"
+		},
+		"invalid": {
+			"code": "Code invalid",
+			"password": "Password invalid",
+			"phonenumber": "Phone-Nunmber invalid"
+		},
+		"phonenumber": "Phone-Nunmber",
+		"request": {
+			"code": "Request Code",
+			"verify": {
+				"code": "Verify Code",
+				"password": "Verify Password"
+			}
+		},
+		"verify": {
+			"code": "Verifying Code",
+			"password": "Verifying Password",
+			"phonenumber": "Verifying Phonenumber"
+		}
+	},
+	"users": {
+		"chat": {
+			"loading": "Loading Chat..."
+		},
+		"loadingUser": "Loading Users...",
+		"searchPlaceholder": "Search...",
+		"title": "Users"
+	}
+}

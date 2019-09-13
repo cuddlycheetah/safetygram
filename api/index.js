@@ -15,20 +15,21 @@ const BOT_TOKEN = Settings.get('botToken', '952461928:AAHMmF2qv5pf_JPSXIALhvs71y
 const bot = new TelegramBot(BOT_TOKEN, {polling: false})
 
 const downloadFile = (fileId, filePath) => {
-    let resolve
-    let reject
-    const promise = new Promise((a, b) => {
-      resolve = a
-      reject = b
-    })
-    const fileStream = bot.getFileStream(fileId)
-    fileStream.on('info', (info) => {
-      pump(fileStream, fs.createWriteStream(filePath), (error) => {
-        if (error) { return reject(error) }
-        return resolve(filePath)
+  // Accellerate Cache
+  return new Promise((resolve, reject) => {
+    try {
+      if (fs.existsSync(filePath)) return resolve(filePath);
+      const fileStream = bot.getFileStream(fileId)
+      fileStream.on('info', (info) => {
+        pump(fileStream, fs.createWriteStream(filePath), (error) => {
+          if (error) { return reject(error) }
+          return resolve(filePath)
+        })
       })
-    })
-    return promise
+    } catch (e) {
+      return reject(e);
+    }
+  });
 }
 
 module.exports = exports = {
@@ -37,6 +38,7 @@ module.exports = exports = {
         this.router = express.Router()
         this.routerProtected = express.Router()
         this.routerProtectedCustom = express.Router()
+        this.routerProtectedCustom2 = express.Router()
         
         app.use(function (req, res, next) {
           res.abort = function (reason) {
@@ -73,14 +75,20 @@ module.exports = exports = {
         rest(this.routerProtected, '/user', User)
         rest(this.routerProtected, '/usernameset', UserNameset)
         rest(this.routerProtected, '/userinfo', UserInfo)
+
         rest(this.routerProtected, '/message', Message)
         rest(this.routerProtected, '/messageedit', MessageEdit)
 
+        require('./stats').setup(this.routerProtectedCustom2)
+
         const fetchFile = async (req, res) => {
-          console.log(req.params.fileId)
           const fileId = req.params.fileId
           try {
             let $file = '/etc/safetygram/cache/' + fileId
+            const fileInfo = await bot.getFile(fileId)
+            if (!!fileInfo.Error) return res.abort(fileInfo.Error);
+            console.log(fileInfo)
+
             let $readStream = await downloadFile(fileId, $file)
             return res.sendFile($file)
           } catch (e) {
@@ -99,11 +107,26 @@ module.exports = exports = {
           })
           .catch(console.error)*/
         }
+        const fetchFileClient = async (req, res) => {
+          const fileInfo = await airgram.api.downloadFile({
+              fileId: req.params.fileId,
+              synchronous: false,
+              priority: 3,
+          })
+          console.log(fileInfo)
+          let localFile = fileInfo.local
+          if (!fileInfo.local) return res.status(404).send(null)
+          return res.sendFile(localFile.path)
+        }
+
         this.router.get('/file/fetch/:fileId', fetchFile)
         this.router.get('/file/fetch/:fileId/*', fetchFile)
-        
+        this.router.get('/file/clientfetch/:fileId', fetchFileClient)
+        this.router.get('/file/clientfetch/:fileId/*', fetchFileClient)
+
         this.router.use('/rest', require('./auth').middleware, this.routerProtected)
         this.router.use('/crest', require('./auth').middleware, this.routerProtectedCustom)
-        console.log(this.router.stack)
+        this.router.use('/v2', require('./auth').middleware, this.routerProtectedCustom2)
+        // console.log(this.router.stack)
     }
 }

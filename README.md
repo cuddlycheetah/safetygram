@@ -5,13 +5,14 @@
 ![Docker Automated build](https://img.shields.io/badge/DOCKER%20BUILD-AUTOMATED-blue?style=for-the-badge)
 ![Docker Stars](https://img.shields.io/docker/stars/cuddlycheetah/safetygram?style=for-the-badge)
 
-
 # Safetygram
 Logging all Messages for Telegram Private Chats. Useful when People delete messages, complete chats.
 
 * Features:
 - Customizeable Bot Token
-- Notify you via a Bot, when a Chat gets deleted,
+- Multi-Language Support (English / German)
+- Showing User Information like previous Identities
+- Notify you via a Bot, when a Chat gets deleted.
 - Backlogs all Messages, Username/Displayname/Bio/ProfilePhoto changes.
 - Supports SQLite3(Default), MySQL, MariaDB, PostgreSQL
 - Accessible through HTTP on Port 46590
@@ -19,7 +20,6 @@ Logging all Messages for Telegram Private Chats. Useful when People delete messa
 News, Updates, Discussion and Support: https://t.me/SafetygramApp
 
 ## Getting Started
-
 These instructions will get you a copy of the project up and running on your machine. See deployment for notes on how to deploy the project on a live system.
 
 ## Settings
@@ -33,7 +33,6 @@ You can change the port of this service by changing "port" to whatever port you 
 Telegram Channel & Support Group is available [here](https://t.me/SafetygramApp)
 
 ## Prerequisites
-
 What things you need to install the software and how to install them
 
 - Linux System (here i used Ubuntu 16.04 64bit)
@@ -67,7 +66,6 @@ docker exec -it <name> pm2 log index
 ```
 
 ## Configuring Docker Composer
-
 You can modify this line in docker-compose.yml
 ```
     ports:
@@ -83,7 +81,7 @@ docker exec -it <name> pm2 log index
 
 ## Deployment (if using nginx)
 
-Add nginx https proxy and block port 46590 for incoming packages and listen on 127.0.0.1
+Add nginx https proxy
 
 ## Authors
 

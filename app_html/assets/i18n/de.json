@@ -1,0 +1,87 @@
+{
+	"auth": {
+		"change_password": "Passwort ändern",
+		"checklocalstorage": "Überprüfe Token",
+		"gatheringconfig": "Lade Konfiguration",
+		"loggingin": "Anmelden...",
+		"login": "Anmeldem",
+		"password": "Passwort",
+		"password2": "Passwort wiederholen",
+		"title": "Authentifizierung"
+	},
+	"chat": {
+		"infos": {
+			"chat": "Chat",
+			"debug": "Entwicklerinfos",
+			"identities": "Frühere Identitäten"
+		},
+		"message": {
+			"forwardinfo": {
+				"chat": "Weitergeleitet aus",
+				"user": "Weitergeleitet von"
+			},
+			"history": "Verlauf",
+			"menu": {
+				"openintg": "In Telegram öffnen"
+			}
+		}
+	},
+	"language": {
+		"de": "Deutsch",
+		"en": "Englisch",
+		"select": "Sprache ändern"
+	},
+	"menu": {
+		"donate": "Spenden",
+		"home": "Start",
+		"logout": "Abmelden",
+		"settings": "Einstellungen",
+		"user": "Benutzer"
+	},
+	"settings": {
+		"botToken": "Bot Token",
+		"botTokenChange": "Bot Token ändern",
+		"bottoken": {
+			"load": "Lade Bot Token",
+			"set": "Setze Bot Token",
+			"success": {
+				"alert": {
+					"title": "Erolgreich"
+				}
+			}
+		},
+		"title": "Einstellungen"
+	},
+	"setup": {
+		"back": "Zurück",
+		"finished": {
+			"set_interface_password": "Setup abgeschlossen, bitte ein Interface Passwort setzen"
+		},
+		"invalid": {
+			"code": "Code ungültig",
+			"password": "Passwort ungültig",
+			"phonenumber": "Telefonnummer ungültig"
+		},
+		"phonenumber": "Telefonnummer",
+		"request": {
+			"code": "",
+			"verify": {
+				"code": "Bestätigungscode anfordern",
+				"password": "Passwort Bestätigen"
+			}
+		},
+		"verify": {
+			"code": "Bestätige Code",
+			"password": "Bestätige Passwort",
+			"phonenumber": "Bestätige Telefonnummer"
+		}
+	},
+	"users": {
+		"chat": {
+			"loading": "Lade Chat..."
+		},
+		"loadingUser": "Lade User...",
+		"searchPlaceholder": "Suche...",
+		"title": "Benutzer"
+	}
+}
