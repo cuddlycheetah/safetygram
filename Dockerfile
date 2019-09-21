@@ -1,4 +1,4 @@
-FROM node:10-alpine
+FROM node:10
 # Python installieren
 RUN apk update && apk add python g++ make && rm -rf /var/cache/apk/*
 # Create app directory
