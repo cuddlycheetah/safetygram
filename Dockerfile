@@ -1,6 +1,8 @@
 FROM node:10
 # Python installieren
 #RUN apk update && apk add python g++ make && rm -rf /var/cache/apk/*
+RUN apt update
+RUN apt install openssl
 # Create app directory
 RUN mkdir -p /etc/safetygram/
 RUN mkdir -p /etc/safetygram/db/
