@@ -14,7 +14,7 @@ Logging all Messages for Telegram Private Chats. Useful when People delete messa
 - Showing User Information like previous Identities
 - Notify you via a Bot, when a Chat gets deleted.
 - Backlogs all Messages, Username/Displayname/Bio/ProfilePhoto changes.
-- Supports SQLite3(Default), MySQL, MariaDB, PostgreSQL
+- Supports MongoDB
 - Accessible through HTTP on Port 46590
 
 News, Updates, Discussion and Support: https://t.me/SafetygramApp
