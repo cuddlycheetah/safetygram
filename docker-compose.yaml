@@ -1,0 +1,8 @@
+version: '3'
+services:
+  mongo:
+    image: "mongo:latest"
+    container_name: safetygram_db
+    hostname: mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
