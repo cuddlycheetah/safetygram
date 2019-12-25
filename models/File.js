@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const GridFS = require('../gridfs')
+
 const schema = new mongoose.Schema({
     size: Number,
     type: String,
@@ -36,7 +38,15 @@ const schema = new mongoose.Schema({
       type: mongoose.Types.ObjectId,
     },
 
+    fileDate: Date,
     created: { type: Date, default: () => new Date(), },
     lastTouched: { type: Date, default: () => new Date(), },
 })
+schema.post('remove', function (next) {
+  console.log('deleting gridfs entry for ', this._id, this.gridfs);
+
+  return GridFS.delete(this.gridfs)
+    .then(next)
+    .catch(next)
+});
 module.exports = mongoose.model('File', schema)

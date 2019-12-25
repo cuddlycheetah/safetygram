@@ -55,7 +55,7 @@ const schema = new mongoose.Schema({
   authorSignature: String,
   views: Number,
 
-  createdAt: { type: Date, default: () => new Date(), },
+  createdAt: { type: Date, default: () => new Date(), index: true, },
   deleted: { type: Boolean, default: false, },
   deletedAt: Date,
 })

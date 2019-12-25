@@ -8,6 +8,9 @@ const schema = new mongoose.Schema({
     created: { type: Date, default: () => new Date(), },
     hash: String,
     name: String,
-    photo: String,
+    photo: {
+        type: mongoose.Types.ObjectId,
+        ref: 'File',
+    },
 })
 module.exports = mongoose.model('ChatNameset', schema)

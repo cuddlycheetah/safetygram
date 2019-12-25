@@ -1,6 +1,7 @@
 const config = require('../config')
 const express = require('../node_modules/express')
 const bodyParser = require('../node_modules/body-parser')
+const fs = require('fs'), path = require('path'), md5 = require('siwi-md5')
 
 const microService = express()
 microService.use(bodyParser.json(true))
@@ -9,10 +10,7 @@ microService.use(bodyParser.json(true))
 const { mongoose, GridFS, Models } = require('../database')
 
 
-const fs = require('fs'), path = require('path')
 
-
-const md5 = require('siwi-md5')
 const { Airgram, Auth, prompt } = require('airgram')
 const airgram = new Airgram({
     apiId: config.telegramInput.apiId,
@@ -97,13 +95,6 @@ airgram.on('updateUserFullInfo', async ({ update }) => {
     await refreshChatInfo(update.userId)
 })
 
-/*
-because chats only exists with mesages, i dont need this anymore
-
-airgram.on('updateNewChat', async ({ update }) => {
-    //console.log(update)
-    await refreshChatInfo(update.chat.id)
-})*/
 async function resolveUserIDToOID(userId) {
     let userCount = await Models.User.count({ id: userId })
     let userOID = null
@@ -148,7 +139,7 @@ async function refreshChatInfo(chatId) {
         return
     }
 
-    //console.log(chatData)
+    console.log(chatData)
     let chatEntry = await Models.Chat.findOne({ id: chatData.id })
     if (!chatEntry) {
         const newChatData = {
@@ -179,6 +170,8 @@ async function refreshChatInfo(chatId) {
     let uniqueName = `${chatData.title}${chatPhoto}`
     let hash = await md5.sign(uniqueName)
 
+    let mediaFile = !!chatData.photo ? await handleRemoteFile(chatData.photo.big, new Date(), 3, 'chatPhoto') : null
+
     let chatNameSet = await Models.ChatNameset.find({
         chat: chatEntry._id,
     })
@@ -192,12 +185,13 @@ async function refreshChatInfo(chatId) {
         await Models.ChatNameset.create({
             chat: chatEntry._id,
             name: chatData.title,
-            photo: chatPhoto,
+            photo: mediaFile,
             hash: hash
         })
     }
     return chatEntry._id;
 }
+// legacy shit, never used but still here because of reasons
 async function syncWTG() {
     const me = await airgram.api.getMe()
     //console.log(me)
@@ -221,6 +215,11 @@ async function syncWTG() {
 function convertContent(content) {
     //console.log(require('util').inspect(content))
     switch (content._) {
+        case 'videoNote':
+            return [
+                convertContent(content.thumbnail),
+                convertContent(content.video),
+            ]
         /** * Voice Note */
         case 'voiceNote':
             return convertContent(content.voice)
@@ -265,13 +264,14 @@ function convertContent(content) {
             return convertContent(content.photo)
         case 'messageVideo':
             return [convertContent(content.video)]
+        case 'messageVideoNote':
+            return convertContent(content.videoNote)
         default:
             // console.log('no files for ', content._)
             return []
     }
 }
 airgram.on('updateFile', async ({ update }) => {
-    console.log('updateFile', update)
     if (update.file.local.isDownloadingCompleted === true) {
         let mediaFile = await Models.File.findOne({ remoteId: update.file.remote.id, })
         if (!!mediaFile) {
@@ -285,6 +285,27 @@ airgram.on('updateFile', async ({ update }) => {
         } catch (e) { }
     }
 })
+async function handleRemoteFile(file, fileDate, storageLevel, type) {
+    let remote = file.remote
+    let mediaFile = await Models.File.findOne({ remoteId: remote.id, })
+    if(!mediaFile) {
+        mediaFile = await Models.File.create({
+            remoteId: remote.id,
+            fileDate: fileDate,
+            size: remote.uploadedSize,
+            storageLevel: storageLevel,
+            type: type || 'file'
+        })
+        if (remote.uploadedSize <= (await Models.Option.findOne({ key: 'download.maxFileSize' })).value) {
+            await airgram.api.downloadFile({
+                fileId: file.id,
+                priority: 32,
+                synchronous: false
+            })
+        }
+    }
+    return mediaFile
+}
 async function insertMessage(message) {
     if (await Models.Message.count({ id: message.id, }) > 0) return; // ! Ignorieren wenn schon vorhanden
     // * if (await Models.IgnoreRule.count({ chatId: update.message.chatId }) > 0) return; // ! Ignorieren
@@ -316,8 +337,9 @@ async function insertMessage(message) {
     
     if (await Models.Chat.count({ id: message.chatId, isChannel: true }) > 0) return; // ! Ignorieren
     const chatEntry = await Models.Chat.findOne({ id: message.chatId })
+    if ((chatEntry.type === 'chatTypeBasicGroup' || chatEntry.type === 'chatTypeSupergroup') && (await Models.Option.findOne({ key: 'chat.updates.ignore.groups' })).value == true) return; // ! Ignorieren
 
-   //console.log('290', message, info)
+    storageLevel = chatEntry.storageLevel || 3
     if (!!message.forwardInfo) {
         const forwardInfo = message.forwardInfo
         info.forwardedDate = new Date(forwardInfo.date * 1000)
@@ -346,24 +368,7 @@ async function insertMessage(message) {
         info.contentFiles = []
         for (let file of files) {
             try {
-                //console.log(file)
-                let remote = file.remote
-                let mediaFile = await Models.File.findOne({ remoteId: remote.id, })
-                if(!mediaFile) {
-                    mediaFile = await Models.File.create({
-                        remoteId: remote.id,
-                        size: remote.uploadedSize,
-                        storageLevel: storageLevel,
-                        type: info.content._
-                    })
-                    if (remote.uploadedSize <= 16 * 1024 * 1024) {
-                        await airgram.api.downloadFile({
-                            fileId: file.id,
-                            priority: 32,
-                            synchronous: false
-                        })
-                    }
-                }
+                let mediaFile = await handleRemoteFile(file, info.createdAt, info.storageLevel, info.content._)
                 info.contentFiles.push(mediaFile._id)
             } catch (e) { console.error(e) }
         }
@@ -394,6 +399,17 @@ async function updateMessage(chatId, messageId, newContent) {
         }
     })
 }
+async function updateMessageDeleted(chatId, messageId) {
+    if (await Models.Chat.count({ id: chatId, }) !== 1) return; // ! Ignorieren wenn nicht vorhanden
+    if (await Models.Message.count({ id: messageId, }) !== 1) return; // ! Ignorieren wenn nicht vorhanden
+    console.log('updateMessageDeleted', chatId, messageId)
+    await Models.Message.findOneAndUpdate(
+        { id: messageId, },
+        {
+            deleted: true,
+            deletedAt: new Date(),
+    })
+}
 async function importChat(chatId, offset) {
     let history = await airgram.api.getChatHistory({
         chatId: chatId,
@@ -414,6 +430,20 @@ async function importChat(chatId, offset) {
 airgram.on('updateNewMessage', async ({ update }) => insertMessage(update.message))
 airgram.on('updateMessageContent', async ({ update }) => updateMessage(update.chatId, update.messageId, update.newContent))
 airgram.on('updateChatReadOutbox', async ({ update }) => { console.log(update) })
+airgram.on('updateDeleteMessages', async ({ update }) => {
+    for (let i=0;i < update.messageIds.length; i++) {
+        updateMessageDeleted(update.chatId, update.messageIds[ i ])
+    }
+})
+
+async function onSetupFinished() {
+    let myself = await airgram.api.getMe()
+    if (myself.response._ === 'user') {
+        await Models.Option.findOneAndUpdate({ key: 'self.id' }, {
+            value: myself.response.id,
+        })
+    }
+}
 //syncWTG()
 microService
     /** 
@@ -430,16 +460,18 @@ microService
      * }
      */
     .post('/setup/phonenumber', async (req, res) => {
+        console.log('first step', req.body)
         let authState = await airgram.api.getAuthorizationState()
         if (authState.response._ === 'authorizationStateWaitPhoneNumber' || (authState.response._ === 'authorizationStateWaitCode' && !!req.body.changeNumber)) {
             let $res = await airgram.api.setAuthenticationPhoneNumber({
                 phoneNumber: req.body.phoneNumber,
             })
-            if ($res._ === 'ok') {
+            console.log($res)
+            if ($res.response._ === 'ok') {
                 let authState = await airgram.api.getAuthorizationState()
-                return res.json(authState.response)
+                return res.status(200).json(authState.response._)
             }
-            return res.status(403).json($res.response)
+            return res.status(200).json(authState.response._)
         }
         return res.status(403).json(authState.response._)
     })
@@ -449,18 +481,20 @@ microService
             let $res = await airgram.api.checkAuthenticationCode({
                 code: req.body.code,
             })
-            if ($res._ === 'ok') {
+            console.log($res)
+            if ($res.response._ === 'ok') {
                 let authState = await airgram.api.getAuthorizationState()
                 
                 if (authState.response._ === 'authorizationStateReady') {
                     // tgsync.syncWTG()
+                    onSetupFinished()
                 }
                 if (authState.response._ === 'authorizationStateWaitPassword') {
-                    return res.json(authState.response)
+                    return res.status(200).json(authState.response._)
                 }
-                return res.json(authState._)
+                return res.status(200).json(authState.response._)
             }
-            return res.status(403).json($res.response)
+            return res.status(200).json(authState.response._)
         }
         return res.status(403).json(authState.response._)
     })
@@ -471,15 +505,16 @@ microService
                 password: req.body.password,
             })
             console.log($res)
-            if ($res._ === 'ok') {
+            if ($res.response._ === 'ok') {
                 let authState = await airgram.api.getAuthorizationState()
                 if (authState.response._ == 'authorizationStateReady') {
                     // tgsync.syncWTG()
+                    onSetupFinished()
                 }
                 console.log(authState)
-                return res.json(authState.response)
+                return res.status(200).json(authState.response._)
             }
-            return res.status(403).json($res.response)
+            return res.status(200).json(authState.response._)
         }
         return res.status(403).json(authState.response._)
     })
@@ -487,10 +522,48 @@ microService
     .post('/import/chat/:chat', async (req, res) => {
         let chatEntry = await Models.Chat.findOne({ _id: req.params.chat })
         if (!chatEntry) return res.status(404).json('Chat not existing in DB')
-        let chatData = await airgram.api.getChat({ chatId: chatEntry.id })
+        let chatData = await airgram.api.getChat({ chatId: chatEntry.supergroupId || chatEntry.id })
 
-        importChat(chatEntry.id)
+        importChat(chatEntry.supergroupId || chatEntry.id)
         res.json(true)
 
     })
 microService.listen(config.telegramInput.port, config.telegramInput.host)
+
+const main = async () => {
+    if ((await Models.Option.count({ key: 'download.maxFileSize' })) === 0) {
+        Models.Option.create({
+            key: 'download.maxFileSize',
+            type: 'filesize',
+            // 16MB
+            value: 16 * 1024 * 1024,
+            default: 16 * 1024 * 1024,
+            desc: 'The maximum file size for automatic downloads'
+        })
+    }
+    if ((await Models.Option.count({ key: 'chat.updates.ignore.groups' })) === 0) {
+        Models.Option.create({
+            key: 'chat.updates.ignore.groups',
+            type: 'bool',
+            value: true,
+            default: true,
+            desc: 'If this is set to true, only Private Chats will be handled!'
+        })
+    }
+    if ((await Models.Option.count({ key: 'self.id' })) === 0) {
+        Models.Option.create({
+            key: 'self.id',
+            type: 'int*',
+            value: -1,
+            default: -1,
+            desc: 'The chatID the bot needs for sending a notification to you (this is set automaticly)!'
+        })
+    }
+    let myself = await airgram.api.getMe()
+    if (myself.response._ === 'user') {
+        await Models.Option.findOneAndUpdate({ key: 'self.id' }, {
+            value: myself.response.id,
+        })
+    }
+}
+main()

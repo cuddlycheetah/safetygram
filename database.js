@@ -7,9 +7,12 @@ const mongoOptions = {
     dbName: config.mongodbName
 }
 // GridFS
-const { GridFSPromise } = require('gridfs-promise')
-const GridFS = new GridFSPromise('safetygram', config.mongodbURI, mongoOptions, 'files')
-mongoose.connect(config.mongodbURI, mongoOptions)
+const GridFS = require('./gridfs')
+mongoose.connect(config.mongodbURI, mongoOptions, (err) => {
+    if (!!err) process.exit(1)
+    console.log('CONNECTED TO MONGODB')
+})
+.catch(() => process.exit(2))
 /*.then(() => {
     GridFS.CONNECTION = mongoose.connection
 })*/

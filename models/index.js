@@ -12,5 +12,7 @@ module.exports = {
 
 
     File: require('./File'),
-    //ArchiveFile: require('./ArchiveFile'),
+    FileArchive: require('./FileArchive'),
+
+    Option: require('./Option'),
 }
