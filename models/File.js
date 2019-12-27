@@ -42,7 +42,7 @@ const schema = new mongoose.Schema({
     created: { type: Date, default: () => new Date(), },
     lastTouched: { type: Date, default: () => new Date(), },
 })
-schema.post('remove', function (next) {
+schema.pre('remove', function (next) {
   console.log('deleting gridfs entry for ', this._id, this.gridfs);
 
   return GridFS.delete(this.gridfs)
