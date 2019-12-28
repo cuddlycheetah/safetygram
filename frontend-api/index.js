@@ -132,6 +132,14 @@ microService.use('/api/graphql',
         graphiql: false
     })
 )
+microService.use('/api/interactive', 
+    JWTMiddleware,
+    express_graphql({
+        schema: schema,
+        rootValue: root,
+        graphiql: true
+    })
+)
 
 microService.get('/api/status', JWTMiddleware, (req,res) => request(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/status`).pipe(res))
 //microService.post('/api/setup/phonenumber', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/phonenumber`, { json: true, body: req.body }).pipe(res))
@@ -139,14 +147,6 @@ microService.get('/api/status', JWTMiddleware, (req,res) => request(`http://${ c
 //microService.post('/api/setup/password', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/password`, { json: true, body: req.body }).pipe(res))
 //microService.post('/api/import/chat/:chat', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/chat/import/${ req.params.chat }`).pipe(res))
 
-///* ! for debugging only
-microService.use('/', 
-    express_graphql({
-        schema: schema,
-        rootValue: root,
-        graphiql: true
-    })
-)
 microService.listen(config.frontendApi.port, config.frontendApi.host, 
     () => console.log(`Express GraphQL Server Now Running On localhost:${ config.frontendApi.port }/graphql`))
 ;
