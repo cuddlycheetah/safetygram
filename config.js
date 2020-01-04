@@ -1,6 +1,6 @@
 module.exports = {
     // MongoDB
-    mongodbURI: 'mongodb://localhost:27017',
+    mongodbURI: 'mongodb://mongo:27017',
     mongodbName: 'safetygram',
     // Microservice specific Configurations
     frontendApi: {
