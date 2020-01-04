@@ -1,5 +1,6 @@
-db/
-node_modules/
 settings.json
 libtdjson.*
-safetygram.db
+mongoData/
+frontend-api/node_modules/
+telegram-input/node_modules/
+storage-manager/node_modules/
