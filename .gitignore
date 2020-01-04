@@ -4,4 +4,5 @@ mongoData/
 node_modules/
 frontend-api/node_modules/
 telegram-input/node_modules/
+telegram-input/db/
 storage-manager/node_modules/
