@@ -1,0 +1,21 @@
+version: '3'
+services:
+  mongo:
+    image: "mongo:latest"
+    container_name: safetygram_db
+    hostname: mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - "/etc/safetygram/mongodb/:/data/db"
+  safetygram:
+    image: "cuddlycheetah/safetygram:2.0"
+    container_name: safetygram_app
+    restart: unless-stopped
+    links:
+      - mongo
+    volumes:
+      - /etc/safetygram/db/:/usr/src/safetygram/telegram-input/db
+    ports:
+      - "127.0.0.1:40490:40490/tcp"
+    tty: true
