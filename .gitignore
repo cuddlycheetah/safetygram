@@ -1,5 +1,4 @@
 settings.json
-libtdjson.*
 mongoData/
 node_modules/
 frontend-api/node_modules/
