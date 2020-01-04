@@ -367,7 +367,7 @@ async function insertMessage(message) {
         info.contentFiles = []
         for (let file of files) {
             try {
-                let mediaFile = await handleRemoteFile(file, info.createdAt, chatEntry.storageLevel || 3, info.content._)
+                let mediaFile = await handleRemoteFile(file, info.createdAt, chatEntry.storageLevel, info.content._)
                 info.contentFiles.push(mediaFile._id)
             } catch (e) { console.error(e) }
         }
