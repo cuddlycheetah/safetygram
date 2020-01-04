@@ -7,7 +7,7 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
-      - "./mongoData:/data/db"
+      - "/etc/safetygram/mongodb/:/data/db"
   safetygram:
     image: "cuddlycheetah/safetygram:2.0"
     container_name: safetygram_app
@@ -15,7 +15,7 @@ services:
     links:
       - mongo
     volumes:
-      - /etc/safetygram/:/etc/safetygram/
+      - /etc/safetygram/app/:/etc/safetygram/
     ports:
       - "0.0.0.0:46590:46590/tcp"
     tty: true
