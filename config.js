@@ -6,7 +6,7 @@ module.exports = {
     frontendApi: {
         // dont change if you dont know, what youre doing
         port: 40490,
-        host: '127.0.0.1',
+        host: '0.0.0.0',
     },
     telegramInput: {
         apiId: 925988,

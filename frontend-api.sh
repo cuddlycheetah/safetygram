@@ -1,3 +1,2 @@
- 
-cd /etc/safetygram/frontend-api/
+cd /usr/src/safetygram/frontend-api/
 node index.js

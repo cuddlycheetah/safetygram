@@ -15,7 +15,7 @@ services:
     links:
       - mongo
     volumes:
-      - /etc/safetygram/app/:/etc/safetygram/
+      - /etc/safetygram/db/:/usr/src/safetygram/telegram-input/db
     ports:
-      - "0.0.0.0:46590:46590/tcp"
+      - "127.0.0.1:46590:46590/tcp"
     tty: true

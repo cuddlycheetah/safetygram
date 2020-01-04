@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # Start Frontend-API
-cd /etc/safetygram/
+cd /usr/src/safetygram/
 bash frontend-api.sh &
 status=$?
 if [ $status -ne 0 ]; then
@@ -10,7 +10,7 @@ if [ $status -ne 0 ]; then
 fi
 
 # Start Telegram-input
-cd /etc/safetygram/
+cd /usr/src/safetygram/
 bash telegram-input.sh &
 status=$?
 if [ $status -ne 0 ]; then
