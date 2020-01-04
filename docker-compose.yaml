@@ -17,5 +17,5 @@ services:
     volumes:
       - /etc/safetygram/db/:/usr/src/safetygram/telegram-input/db
     ports:
-      - "127.0.0.1:46590:46590/tcp"
+      - "127.0.0.1:40490:40490/tcp"
     tty: true
