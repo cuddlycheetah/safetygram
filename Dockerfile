@@ -31,7 +31,7 @@ RUN mkdir -p /usr/src/safetygram/ /usr/src/safetygram/app_html/ /usr/src/safetyg
 WORKDIR /usr/src/safetygram/
 COPY . /usr/src/safetygram/
 COPY *.sh /usr/src/safetygram/
-RUN cp /usr/local/lib/libtdjson.so /usr/src/safetygram/telegram-input/libdtdjson.so
+RUN cp /usr/local/lib/libtdjson.so /usr/src/safetygram/telegram-input/libtdjson.so
 
 RUN npm install && npm install -g forever
 RUN cd /usr/src/safetygram/telegram-input/ && npm install

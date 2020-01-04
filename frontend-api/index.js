@@ -1,19 +1,21 @@
 const config = require('../config')
 const express = require('../node_modules/express')
 const bodyParser = require('../node_modules/body-parser')
+const path = require('path')
 
 const jwt = require("jwt-simple")
 const UUIDV4 = require('uuid/v4')
 const request = require('request')
 const bcrypt = require('bcryptjs')
 const JWT_SECRET = 'SAFETYGRAM_' + UUIDV4()
-var express_graphql = require('../node_modules/express-graphql');
+const express_graphql = require('../node_modules/express-graphql');
+const serveStatic = require('serve-static')
 
 const microService = express()
 // MongoDB
 const { mongoose, GridFS, Models } = require('../database')
 // Root resolver
-var root = { message: () => 'Hello World!' }
+const root = { message: () => 'Hello World!' }
 const main = async () => {
     if ((await Models.Option.count({ key: 'password' })) === 0) {
         Models.Option.create({
@@ -77,7 +79,6 @@ async function sendNotification(text) {
     }
 }
 
-//microService.use(express.static("public"))
 microService.use(bodyParser.json(true))
 
 // Login
@@ -140,13 +141,15 @@ microService.use('/api/interactive',
         graphiql: true
     })
 )
-
-microService.get('/api/status', JWTMiddleware, (req,res) => request(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/status`).pipe(res))
+microService.use(require('morgan')('dev'))
+microService.use('/', serveStatic(path.join(__dirname, '..', 'app_html')))
+microService.get('*', (req, res) => res.redirect('/'))
+//microService.get('/api/status', JWTMiddleware, (req,res) => request(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/status`).pipe(res))
 //microService.post('/api/setup/phonenumber', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/phonenumber`, { json: true, body: req.body }).pipe(res))
 //microService.post('/api/setup/code', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/code`, { json: true, body: req.body }).pipe(res))
 //microService.post('/api/setup/password', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/password`, { json: true, body: req.body }).pipe(res))
 //microService.post('/api/import/chat/:chat', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/chat/import/${ req.params.chat }`).pipe(res))
 
 microService.listen(config.frontendApi.port, config.frontendApi.host, 
-    () => console.log(`Express GraphQL Server Now Running On localhost:${ config.frontendApi.port }/graphql`))
+    () => console.log(`Express GraphQL Server Now Running On ${ config.frontendApi.host }:${ config.frontendApi.port }/graphql`))
 ;
