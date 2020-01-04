@@ -19,7 +19,7 @@ const main = async () => {
         Models.Option.create({
             key: 'password',
             type: 'string',
-            value: '$2a$08$jQyEIGpm5//CX8Eg.P0I3.S72SVTFfINCeIOUh5Uff/2G8Kg.wLQu', // default hash for "admin"
+            value: 'admin',
             default: 'admin',
             desc: 'The login password, please change it after installation!'
         })

@@ -286,6 +286,7 @@ airgram.on('updateFile', async ({ update }) => {
     }
 })
 async function handleRemoteFile(file, fileDate, storageLevel, type) {
+    console.log('storageLevel', storageLevel)
     let remote = file.remote
     let mediaFile = await Models.File.findOne({ remoteId: remote.id, })
     if(!mediaFile) {
@@ -312,7 +313,7 @@ async function insertMessage(message) {
     //let chat = await airgram.api.getChat({ chatId: update.message.chatId })
     let info = {
         id: message.id,
-        content: message.content,
+        content: JSON.parse(JSON.stringify(message.content)),
         isOutgoing: message.isOutgoing,
         mediaAlbumId: message.mediaAlbumId,
         createdAt: new Date(message.date * 1000),
@@ -322,7 +323,6 @@ async function insertMessage(message) {
     if (!!message.chatId) {
         info.peer = await resolveChatIDToOID(message.chatId)
     }
-    let storageLevel = 3
     if (!!message.senderUserId) {
         info.from = await resolveChatIDToOID(message.senderUserId)
         if (!!info.from) {
@@ -339,7 +339,6 @@ async function insertMessage(message) {
     const chatEntry = await Models.Chat.findOne({ id: message.chatId })
     if ((chatEntry.type === 'chatTypeBasicGroup' || chatEntry.type === 'chatTypeSupergroup') && (await Models.Option.findOne({ key: 'chat.updates.ignore.groups' })).value == true) return; // ! Ignorieren
 
-    storageLevel = chatEntry.storageLevel || 3
     if (!!message.forwardInfo) {
         const forwardInfo = message.forwardInfo
         info.forwardedDate = new Date(forwardInfo.date * 1000)
@@ -368,7 +367,7 @@ async function insertMessage(message) {
         info.contentFiles = []
         for (let file of files) {
             try {
-                let mediaFile = await handleRemoteFile(file, info.createdAt, info.storageLevel, info.content._)
+                let mediaFile = await handleRemoteFile(file, info.createdAt, chatEntry.storageLevel || 3, info.content._)
                 info.contentFiles.push(mediaFile._id)
             } catch (e) { console.error(e) }
         }
