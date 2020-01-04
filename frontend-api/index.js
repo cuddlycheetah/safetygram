@@ -10,6 +10,11 @@ const bcrypt = require('bcryptjs')
 const JWT_SECRET = 'SAFETYGRAM_' + UUIDV4()
 const express_graphql = require('../node_modules/express-graphql');
 const serveStatic = require('serve-static')
+/*const csp = require('content-security-policy')
+const cspPolicy = {
+    'default-src': [ csp.SRC_SELF, 'github.com', 'fonts.googleapis.com' ],
+    'script-src': [ csp.SRC_SELF, csp.SRC_DATA ]
+};*/
 
 const microService = express()
 // MongoDB
@@ -79,6 +84,16 @@ async function sendNotification(text) {
     }
 }
 
+//microService.use(csp.getCSP(cspPolicy))
+const CSPS = "default-src 'self' data: github.com fonts.googleapis.com; script-src 'self' data: 'unsafe-inline'; object-src 'none'; style-src 'self' data: 'unsafe-inline' fonts.googleapis.com; img-src *; media-src *; frame-src 'self' github.com; font-src *; connect-src 'self' data:"
+
+microService.use((req, res, next) => {
+    res.set("Content-Security-Policy", CSPS)
+    res.set("X-Content-Security-Policy", CSPS)
+    res.set("X-WebKit-CSP", CSPS)
+
+    next()
+})
 microService.use(bodyParser.json(true))
 
 // Login
@@ -143,7 +158,7 @@ microService.use('/api/interactive',
 )
 microService.use(require('morgan')('dev'))
 microService.use('/', serveStatic(path.join(__dirname, '..', 'app_html')))
-microService.get('*', (req, res) => res.redirect('/'))
+microService.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'app_html', 'index.html')))
 //microService.get('/api/status', JWTMiddleware, (req,res) => request(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/status`).pipe(res))
 //microService.post('/api/setup/phonenumber', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/phonenumber`, { json: true, body: req.body }).pipe(res))
 //microService.post('/api/setup/code', JWTMiddleware, (req,res) => request.post(`http://${ config.telegramInput.host }:${ config.telegramInput.port }/setup/code`, { json: true, body: req.body }).pipe(res))

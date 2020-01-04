@@ -10,6 +10,7 @@ microService.use(bodyParser.json(true))
 const { mongoose, GridFS, Models } = require('../database')
 
 
+const request = require('request')
 
 const { Airgram, Auth, prompt } = require('airgram')
 const airgram = new Airgram({
@@ -435,6 +436,42 @@ airgram.on('updateDeleteMessages', async ({ update }) => {
     }
 })
 
+airgram.on('updateChatLastMessage', async ({ update }) => {
+    // ! { _: 'updateChatLastMessage', chatId: ****, order: '0' }
+    // * When the lastMessage Update has no message property, the Chat has been DELETED by the other Partner. In this case we want to alarm the Account Owner
+    if (!update.lastMessage) {
+        if (await Models.Chat.count({ id: update.chatId, }) !== 1) return; // ! Ignorieren wenn nicht vorhanden
+        console.log(update.chatId)
+        let chatInfo = await Models.Chat.findOne({ id: update.chatId })
+        console.log(chatInfo)
+        let name = ''
+        switch (chatInfo.type) {
+            case 'chatTypePrivate': 
+                let userNameSet = await Models.UserNameset.findOne({
+                    user: chatInfo.user,
+                }).sort({ created: -1 }).limit(1)
+                name = `${ userNameSet.firstName } ${ userNameSet.lastName } @${ userNameSet.username }`
+            break;
+            default:
+                let chatNameSet = await Models.ChatNameset.findOne({
+                    chat: chatInfo._id,
+                }).sort({ created: -1 }).limit(1)
+                name = `${ chatNameSet.name }`
+            break;
+        }
+        let url = `${ (await Models.Option.findOne({ key: 'web.public' })).value }chats/${ chatInfo._id }`
+        sendNotification(`🚨🚨🚨 Chat deleted 🚨🚨🚨\n${ name } ${ url }`)
+    }
+})
+
+async function sendNotification(text) {
+    text = encodeURIComponent(text)
+    try {
+        request(`https://api.telegram.org/bot${ (await Models.Option.findOne({ key: 'bot.token' })).value }/sendMessage?chat_id=${ (await Models.Option.findOne({ key: 'self.id' })).value }&text=${ text }`)
+    } catch(e) {
+        console.error(e)
+    }
+}
 async function onSetupFinished() {
     let myself = await airgram.api.getMe()
     if (myself.response._ === 'user') {
@@ -556,6 +593,15 @@ const main = async () => {
             value: -1,
             default: -1,
             desc: 'The chatID the bot needs for sending a notification to you (this is set automaticly)!'
+        })
+    }
+    if ((await Models.Option.count({ key: 'web.public' })) === 0) {
+        Models.Option.create({
+            key: 'web.public',
+            type: 'string',
+            value: "http://example.com/",
+            default: "http://example.com/",
+            desc: 'The public URL for this Instance, must end with a slash( / )'
         })
     }
     let myself = await airgram.api.getMe()

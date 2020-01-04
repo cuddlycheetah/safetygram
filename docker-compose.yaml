@@ -9,7 +9,7 @@ services:
     volumes:
       - "/etc/safetygram/mongodb/:/data/db"
   safetygram:
-    image: "cuddlycheetah/safetygram:2.0"
+    image: "cuddlycheetah/safetygram"
     container_name: safetygram_app
     restart: unless-stopped
     links:
