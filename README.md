@@ -40,7 +40,7 @@ There is already an auto-built docker image for simple-install [cuddlycheetah/sa
 ### using Docker Composer
 
 ```bash
-wget https://raw.githubusercontent.com/cuddlycheetah/safetygram/master/docker-compose.yml -O docker-compose.yml
+wget https://raw.githubusercontent.com/cuddlycheetah/safetygram/master/docker-compose.yaml -O docker-compose.yml
 docker-compose pull
 docker-compose up -d
 ```
