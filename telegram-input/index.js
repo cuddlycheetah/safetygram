@@ -238,7 +238,10 @@ function convertContent(content) {
         /** * Sticker */
         case 'sticker':
             return convertContent(content.sticker)
-        /** * Document */
+        /** * Audio */
+        case 'audio':
+            return convertContent(content.audio)
+        /** * Audio */
         case 'document':
             return convertContent(content.document)
         /** * Animation */
@@ -252,7 +255,8 @@ function convertContent(content) {
         case 'file':
             return content
 
-
+        case 'messageAudio':
+            return [convertContent(content.audio)]
         case 'messageDocument':
             return [convertContent(content.document)]
         case 'messageVoiceNote':
