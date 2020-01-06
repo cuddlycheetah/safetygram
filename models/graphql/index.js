@@ -180,7 +180,7 @@ schemaComposer.Query.addFields({
 
                 let lastMessage = await Models.Message.find({ peer: chatNameset.chat._id }).sort({ createdAt: -1 }).limit(1)
                 let lastMessageDate = lastMessage.length > 0 ? lastMessage[0].createdAt : new Date(0)
-                if (!chatList[chatNameset.chat._id] && !!lastMessage)  {
+                if (!chatList[chatNameset.chat._id] && lastMessage.length > 0)  {
                     chatList[chatNameset.chat._id] = {
                         _id: chatNameset.chat._id,
                         type: chatNameset.chat.type,
