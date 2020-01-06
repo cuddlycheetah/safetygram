@@ -208,7 +208,18 @@ async function syncWTG() {
     }
 }
 
+function getMessageText(content) {
+    switch (content._) {
+        case 'formattedText': return content.text
+        case 'webPage': return [content.type, content.siteName, content.title].join(' ')
+        case 'messageText': return getMessageText(content.text) + (!!content.webpage ? getMessageText(content.webpage) : '')
+        case 'messagePhoto': return getMessageText(content.caption)
+        case 'messageVideo': return getMessageText(content.caption)
+        case 'messageAnimation': return getMessageText(content.caption)
 
+        default: return '';
+    }
+}
 /**
  * Converts nested JSON Data to something useful
  * @param {Object} content 
@@ -325,6 +336,7 @@ async function insertMessage(message) {
         authorSignature: message.authorSignature,
         views: message.views,
     }
+    info.text = getMessageText(info.content)
     if (!!message.chatId) {
         info.peer = await resolveChatIDToOID(message.chatId)
     }
@@ -566,7 +578,6 @@ microService
 
         importChat(chatEntry.supergroupId || chatEntry.id)
         res.json(true)
-
     })
 microService.listen(config.telegramInput.port, config.telegramInput.host)
 
@@ -608,11 +619,26 @@ const main = async () => {
             desc: 'The public URL for this Instance, must end with a slash( / )'
         })
     }
+    if ((await Models.Option.count({ key: 'index.onstart' })) === 0) {
+        Models.Option.create({
+            key: 'index.onstart',
+            type: 'bool',
+            value: true,
+            default: true,
+            desc: 'If set to true, Safetygram will refresh the Index when started'
+        })
+    }
     let myself = await airgram.api.getMe()
     if (myself.response._ === 'user') {
         await Models.Option.findOneAndUpdate({ key: 'self.id' }, {
             value: myself.response.id,
         })
+    }
+    if ((await Models.Option.findOne({ key: 'index.onstart' })).value === true) {
+        console.time('indexgen')
+        Models.Message.find().stream().on('data', async (message) => {
+            await Models.Message.findByIdAndUpdate(message._id, { text: getMessageText(message.content) })
+        }).on('end', () => console.timeEnd('indexgen'))
     }
 }
 main()

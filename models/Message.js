@@ -41,7 +41,7 @@ const schema = new mongoose.Schema({
       'messageForwardOriginChannel'
     ],
   },
-
+  text: { type: String, text: true },
   content: Object,
   contentFiles: Array({
     type: mongoose.Types.ObjectId,
@@ -51,7 +51,7 @@ const schema = new mongoose.Schema({
   edits: Array({
     type: Object
   }),
-  
+
   authorSignature: String,
   views: Number,
 
@@ -59,4 +59,5 @@ const schema = new mongoose.Schema({
   deleted: { type: Boolean, default: false, },
   deletedAt: Date,
 })
+
 module.exports = mongoose.model('Message', schema)
