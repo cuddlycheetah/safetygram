@@ -574,9 +574,9 @@ microService
     .post('/import/chat/:chat', async (req, res) => {
         let chatEntry = await Models.Chat.findOne({ _id: req.params.chat })
         if (!chatEntry) return res.status(404).json('Chat not existing in DB')
-        let chatData = await airgram.api.getChat({ chatId: chatEntry.supergroupId || chatEntry.id })
+        let chatData = await airgram.api.getChat({ chatId: chatEntry.id })
 
-        importChat(chatEntry.supergroupId || chatEntry.id)
+        importChat(chatEntry.id)
         res.json(true)
     })
 microService.listen(config.telegramInput.port, config.telegramInput.host)
