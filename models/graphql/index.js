@@ -11,7 +11,7 @@ require('./$User')
 require('./$UserInfo')
 require('./$UserNameset')
 
-require('./$Message')
+const $Message = require('./$Message')
 require('./$File')
 
 require('./$Option')
@@ -156,9 +156,21 @@ schemaComposer.Query.addFields({
             }
         }
     },
+    searchMessages: {
+        type: new graphql.GraphQLList($Message.getType()),
+        args: { text: 'String!', from: 'MongoID', peer: 'MongoID' },
+        resolve: async (context, args) => {
+            let f = {}
+            if (!!args.peer) f.peer = args.peer
+            if (!!args.from) f.peer = args.from
+            
+            let query = { $text: { $search: args.text }, ...f }
+            return Models.Message.find(query)
+        },
+    },
     chatOverview: {
         type: new graphql.GraphQLList(ChatOverviewType),
-        resolve: async ({ source, args, context, info }) => {
+        resolve: async (context, args) => {
             let ids = await Models.ChatNameset.find().distinct('chat')
             ids = [...new Set(ids)]
             let res = await Models.ChatNameset.find().sort({ created :1 }).populate('chat')

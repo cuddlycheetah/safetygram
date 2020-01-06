@@ -12,7 +12,7 @@ schemaComposer.Query.addFields({
     [prefix + 'ById']: ModelTC.getResolver('findById'),
     [prefix + 'ByIds']: ModelTC.getResolver('findByIds'),
     [prefix + 'One']: ModelTC.getResolver('findOne'),
-    [prefix + 'Many']: ModelTC.getResolver('findMany'),
+    [prefix + 'Many']: ModelTC.getResolver('findMany', ),
     [prefix + 'Count']: ModelTC.getResolver('count'),
     [prefix + 'Connection']: ModelTC.getResolver('connection'),
     [prefix + 'Pagination']: ModelTC.getResolver('pagination'),
@@ -28,3 +28,5 @@ schemaComposer.Mutation.addFields({
     [prefix + 'RemoveOne']: ModelTC.getResolver('removeOne'),
     [prefix + 'RemoveMany']: ModelTC.getResolver('removeMany'),
 });
+
+module.exports = ModelTC
