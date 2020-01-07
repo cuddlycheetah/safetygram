@@ -15,15 +15,16 @@ const purge = async (files) => {
     if (!files) return
 
     for(let file of files) {
-        try { await GridFS.delete(file.gridfs) }
-        catch (e) { console.error(e) }
-
-        await Models.File.findByIdAndUpdate(file._id, {
-            gridfs: null,
-            local: false,
-            remote: true,
-        })
-        console.log('deleted', file._id)
+        if (!!file.gridfs) {
+            try { await GridFS.delete(file.gridfs) }
+            catch (e) { console.error(e) }
+            await Models.File.findByIdAndUpdate(file._id, {
+                gridfs: null,
+                local: false,
+                remote: true,
+            })
+            console.log('deleted', file._id)
+        }
     }
 }
 const cronCheck = async () => {
@@ -41,10 +42,10 @@ const cronCheck = async () => {
         3: storageLevelTime[3] >= 0 ? getNegativeDate(storageLevelTime[3]) : false,
     }
     const exceedingFiles = {
-        0: exceedingDates[0] ? (await Models.File.find({ storageLevel: 0, created: { $lt: exceedingDates[0] }, type: { $ne: "chatPhoto" } })) : false,
-        1: exceedingDates[1] ? (await Models.File.find({ storageLevel: 1, created: { $lt: exceedingDates[1] }, type: { $ne: "chatPhoto" } })) : false,
-        2: exceedingDates[2] ? (await Models.File.find({ storageLevel: 2, created: { $lt: exceedingDates[2] }, type: { $ne: "chatPhoto" } })) : false,
-        3: exceedingDates[3] ? (await Models.File.find({ storageLevel: 3, created: { $lt: exceedingDates[3] }, type: { $ne: "chatPhoto" } })) : false,
+        0: exceedingDates[0] ? (await Models.File.find({ storageLevel: 0, remote: true, local: true, created: { $lt: exceedingDates[0] }, type: { $ne: "chatPhoto" } })) : false,
+        1: exceedingDates[1] ? (await Models.File.find({ storageLevel: 1, remote: true, local: true, created: { $lt: exceedingDates[1] }, type: { $ne: "chatPhoto" } })) : false,
+        2: exceedingDates[2] ? (await Models.File.find({ storageLevel: 2, remote: true, local: true, created: { $lt: exceedingDates[2] }, type: { $ne: "chatPhoto" } })) : false,
+        3: exceedingDates[3] ? (await Models.File.find({ storageLevel: 3, remote: true, local: true, created: { $lt: exceedingDates[3] }, type: { $ne: "chatPhoto" } })) : false,
     }
     await purge(exceedingFiles[0])
     await purge(exceedingFiles[1])
