@@ -9,12 +9,21 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-# Start Telegram-input
+# Start Telegram-Input
 cd /usr/src/safetygram/
 bash telegram-input.sh &
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start telegram-input $status"
+  exit $status
+fi
+
+# Start Storage-Manager
+cd /usr/src/safetygram/
+bash storage-manager.sh &
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start storage-manager $status"
   exit $status
 fi
 
@@ -29,10 +38,14 @@ while sleep 10; do
   PROCESS_1_STATUS=$?
   ps aux |grep telegram-input |grep -q -v grep
   PROCESS_2_STATUS=$?
+  ps aux |grep storage-manager |grep -q -v grep
+  PROCESS_3_STATUS=$?
   # If the greps above find anything, they exit with 0 status
   # If they are not both 0, then something is wrong
-  if [ $PROCESS_1_STATUS -ne 0 -o $PROCESS_2_STATUS -ne 0 ]; then
-    echo "One of the processes has already exited."
+  if [ $PROCESS_1_STATUS -ne 0 -o $PROCESS_2_STATUS -ne 0 -o $PROCESS_3_STATUS -ne 0 ]; then
+    echo "One of the processes has exited."
     exit 1
   fi
 done
+
+killall -9 node

@@ -294,6 +294,8 @@ airgram.on('updateFile', async ({ update }) => {
             let uploadedFile = await GridFS.uploadFile(update.file.local.path, path.basename(update.file.local.path), path.extname(update.file.local.path).substr(1))
             mediaFile.gridfs = uploadedFile._id
             mediaFile.earlyStage = false
+            mediaFile.local = true
+            mediaFile.remote = true
             await mediaFile.save()
         }
         try {

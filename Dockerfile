@@ -37,6 +37,7 @@ COPY *.sh /usr/src/safetygram/
 RUN npm install && npm install -g forever
 RUN cd /usr/src/safetygram/telegram-input/ && npm install
 RUN cd /usr/src/safetygram/frontend-api/ && npm install
+RUN cd /usr/src/safetygram/storage-manager/ && npm install
 WORKDIR /usr/src/safetygram/
 
 EXPOSE 40490
