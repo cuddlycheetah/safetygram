@@ -1,2 +1,2 @@
 cd /usr/src/safetygram/telegram-input/
-node index.js
+node index.js >/dev/null
