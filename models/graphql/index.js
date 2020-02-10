@@ -16,6 +16,8 @@ require('./$File')
 
 require('./$Option')
 
+require('./$OperationStatus')
+
 const mongoose = require('mongoose')
 const Models = require('../index')
 const ChatOverviewType = new graphql.GraphQLObjectType({  
@@ -173,20 +175,17 @@ schemaComposer.Query.addFields({
         resolve: async (context, args) => {
             let ids = await Models.ChatNameset.find().distinct('chat')
             ids = [...new Set(ids)]
-            let res = await Models.ChatNameset.find().sort({ created :1 }).populate('chat')
+            let res = await Models.ChatNameset.find().sort({ created : 1 }).populate('chat')
             let chatList = {}
             for (let i = 0; i < res.length; i++) {
                 const chatNameset = res[i]
-
-                let lastMessage = await Models.Message.find({ peer: chatNameset.chat._id }).sort({ createdAt: -1 }).limit(1)
-                let lastMessageDate = lastMessage.length > 0 ? lastMessage[0].createdAt : new Date(0)
-                if (!chatList[chatNameset.chat._id] && lastMessage.length > 0)  {
+                if (!chatList[chatNameset.chat._id] ) {
                     chatList[chatNameset.chat._id] = {
                         _id: chatNameset.chat._id,
                         type: chatNameset.chat.type,
                         name: chatNameset.name,
                         photo: chatNameset.photo,
-                        lastMessageDate
+                        lastMessageDate: !!chatNameset.chat.lastUpdate ? chatNameset.chat.lastUpdate : new Date(0)
                     }
                 }
             }

@@ -402,6 +402,7 @@ async function insertMessage(message) {
     }
     // * saving
     await Models.Message.create(info)
+    await Models.Chat.findByIdAndUpdate(info.peer, { lastUpdate: new Date() })
 }
 async function updateMessage(chatId, messageId, newContent) {
     if (await Models.Chat.count({ id: chatId, }) !== 1) return; // ! Ignorieren wenn nicht vorhanden
@@ -428,20 +429,43 @@ async function updateMessageDeleted(chatId, messageId) {
             deletedAt: new Date(),
     })
 }
-async function importChat(chatId, offset) {
-    let history = await airgram.api.getChatHistory({
-        chatId: chatId,
-        limit: !!offset ? 100 : 1,
-        fromMessageId: offset || 0
-    })
-    let messages = history.response.messages
+async function importChat(chatId, statusId, offset) {
     let lastMessageID
-    for (let message of messages) {
-        await insertMessage(message)
-        lastMessageID = message.id
+    try {
+        let history = await airgram.api.getChatHistory({
+            chatId: chatId,
+            limit: !!offset ? 100 : 1,
+            fromMessageId: offset || 0
+        })
+        let messages = history.response.messages
+        for (let message of messages) {
+            await insertMessage(message)
+            lastMessageID = message.id
+        }
+    } catch (e) {
+        await Models.OperationStatus.findByIdAndUpdate(statusId, {
+            progress: -3,
+            finished: true,
+            text: 'Import failed',
+            error: String(e)
+        })
     }
+
     if (!!lastMessageID) {
-        setTimeout(importChat, 500, chatId, lastMessageID)
+        let prevStatus = await Models.OperationStatus.findById(statusId)
+        await Models.OperationStatus.findByIdAndUpdate(statusId, {
+            progress: prevStatus.cancel ? -2 : -1,
+            finished: prevStatus.cancel,
+            text: prevStatus.cancel ? 'Import stopped' : `Importing ${ lastMessageID }... `,
+        })
+        if (prevStatus.cancel == false) setTimeout(importChat, 500, chatId, statusId, lastMessageID)
+    } else {
+        await Models.OperationStatus.findByIdAndUpdate(statusId, {
+            progress: 100,
+            finished: true,
+            cancel: false,
+            text: `Import finished`,
+        })
     }
 }
 
@@ -578,12 +602,24 @@ microService
         if (!chatEntry) return res.status(404).json('Chat not existing in DB')
         let chatData = await airgram.api.getChat({ chatId: chatEntry.id })
 
-        importChat(chatEntry.id)
+        if (await Models.OperationStatus.count({ _id: req.params.chat }) > 0) return res.status(400).json('Already Importing')
+        await Models.OperationStatus.create({
+            _id: req.params.chat,
+            type: 'importChat',
+            progress: 0,
+            finished: false,
+            cancel: false,
+            text: `Import started`,
+            link: '/chats/' + req.params.chat,
+        })
+        importChat(chatEntry.id, req.params.chat)
         res.json(true)
     })
 microService.listen(config.telegramInput.port, config.telegramInput.host)
 
 const main = async () => {
+    // Clean Prev. Operation Statuses
+    await Models.OperationStatus.remove({})
     if ((await Models.Option.count({ key: 'download.maxFileSize' })) === 0) {
         Models.Option.create({
             key: 'download.maxFileSize',

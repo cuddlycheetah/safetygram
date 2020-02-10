@@ -15,4 +15,6 @@ module.exports = {
     FileArchive: require('./FileArchive'),
 
     Option: require('./Option'),
+
+    OperationStatus: require('./OperationStatus'),
 }
